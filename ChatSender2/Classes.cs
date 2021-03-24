@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+//some changes
 namespace ChatSender2
 {
 	public class User
