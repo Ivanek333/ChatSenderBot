@@ -177,7 +177,7 @@ namespace ChatSender2
                                     {
                                         last_cind = 0,
                                         last_time = DateTime.Now,
-                                        message = "your_message",
+                                        message = "Ваше сообщение",
                                         sended_messages = 0,
                                         tarif = 50,
                                         minutes_between_send = 0,
