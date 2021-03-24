@@ -26,8 +26,10 @@ namespace ChatSender2
                 path = path
             };
             Database data = new Database();
+            MessageData mdata = new MessageData();
             try
             {
+                JsonConvert.PopulateObject(File.ReadAllText($"MessageData.json"), mdata);
                 JsonConvert.PopulateObject(File.ReadAllText($"{path}Database.json"), data);
                 foreach (var item in data.users_ids)
                 {
@@ -196,7 +198,6 @@ namespace ChatSender2
                                 File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                                 {
                                     last_txnId = data.last_txnId,
-                                    messages = data.messages,
                                     users_ids = data.users_ids,
                                     users = new List<User>()
                                 }));
@@ -204,22 +205,24 @@ namespace ChatSender2
                                 File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
                             }
                             int cur_mid = data.users[ind].mid;
-                            int cur_mind = data.FindMind(cur_mid);
+                            int cur_mind = mdata.FindMind(cur_mid);
                             int to_mid = cur_mid;
                             int to_mind = cur_mind; // can be -1
-                            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                            dictionary.Add("[user_id]", from_id);
-                            dictionary.Add("[user_token]", data.users[ind].user_token);
+                            Dictionary<string, string> dictionary = new Dictionary<string, string>
+                            {
+                                { "[user_id]", from_id },
+                                { "[user_token]", data.users[ind].user_token }
+                            };
                             if (!new_user)
                             {
-                                to_mid = api.FindMidByText(data.messages[cur_mind], msg);
-                                to_mind = data.FindMind(to_mid);
+                                to_mid = api.FindMidByText(mdata.messages[cur_mind], msg);
+                                to_mind = mdata.FindMind(to_mid);
                             }
                             //добавления для некоторых пунктов
                             if (to_mid == 7 && data.users[ind].is_admin)
                             {
                                 to_mid = 38;
-                                to_mind = data.FindMind(to_mid);
+                                to_mind = mdata.FindMind(to_mid);
                             }
                             if (to_mid == 12)
                             {
@@ -276,42 +279,42 @@ namespace ChatSender2
                             // исключения для блокирования переходов по меню
                             if ((cur_mid >= 7) && !data.users[ind].authed)
                             {
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(3)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(3)], '#');
                                 data.users[ind].mid = 3;
                             }
                             else if ((to_mid == 20 || to_mid == 34 || to_mid == 12 || to_mid == 7) && !data.users[ind].got_token)
                             {
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(8)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(8)], '#');
                                 data.users[ind].mid = 8;
                             }
                             else if ((to_mid == 30) && !data.users[ind].got_phone)
                             {
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(32)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(32)], '#');
                                 data.users[ind].mid = 32;
                             }
                             else if ((to_mid == 34) && !data.users[ind].got_phone)
                             {
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(36)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(36)], '#');
                                 data.users[ind].mid = 36;
                             }
                             else if (to_mind != -1) //если нажал на кнопку и исключений нет
                             {
-                                data.users[ind].mid = data.messages[to_mind].mid;
-                                api.Send_split_msg_keyboard(peer_id, data.messages[to_mind], '#', api.ReplaceAll(data.messages[to_mind].text, dictionary));
+                                data.users[ind].mid = mdata.messages[to_mind].mid;
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[to_mind], '#', api.ReplaceAll(mdata.messages[to_mind].text, dictionary));
                             }
                             //исключения для тех пунктов, в которых нужен ввод
                             else if (cur_mid == 3)
                             {
                                 if (msg == "test_code")
                                 {
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(6)], '#');
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(6)], '#');
                                     data.users[ind].mid = 6;
                                     data.users[ind].is_admin = false;
                                     data.users[ind].authed = true;
                                 }
                                 else if (msg == "admin_code")
                                 {
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(6)], '#');
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(6)], '#');
                                     api.Send_msg(peer_id, "Вы админ");
                                     data.users[ind].sender.tarif = 1000000;
                                     data.users[ind].mid = 6;
@@ -320,7 +323,7 @@ namespace ChatSender2
                                 }
                                 else
                                 {
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(5)], '#');
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(5)], '#');
                                     data.users[ind].authed = false;
                                 }
                             } // авторизация
@@ -332,12 +335,12 @@ namespace ChatSender2
                                     data.users[ind].got_token = true;
                                     data.users[ind].mid = 10;
                                     api.Send_msg(peer_id, data.users[ind].user_token);
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(10)], '#');
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(10)], '#');
                                 }
                                 else
                                 {
                                     data.users[ind].got_token = false;
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(11)], '#');
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(11)], '#');
                                 }
                             } // ввод токена
                             else if (cur_mid == 15)
@@ -379,23 +382,23 @@ namespace ChatSender2
                                                 data.users[ind].all_chats[ind_all].mark = 1;
                                                 data.users[ind].sender_chats.Add(data.users[ind].all_chats[ind_all]);
                                                 data.users[ind].sender_chats.Sort();
-                                                api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', data.messages[data.FindMind(17)].text);
+                                                api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(17)].text);
                                             }
                                             else
                                             {
                                                 data.users[ind].all_chats[ind_all].mark = 0;
                                                 data.users[ind].sender_chats.RemoveAt(ind_send);
-                                                api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', data.messages[data.FindMind(18)].text);
+                                                api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(18)].text);
                                             }
                                         }
                                         else
                                         {
-                                            api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', data.messages[data.FindMind(16)].text);
+                                            api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(16)].text);
                                         }
                                     }
                                     else
                                     {
-                                        api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', data.messages[data.FindMind(16)].text);
+                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(16)].text);
                                     }
                                 }
                                 else
@@ -459,11 +462,11 @@ namespace ChatSender2
                                             str_chats_removed = str_chats_removed.Remove(str_chats_removed.Length - 2, 2);
                                         dictionary.Add("[sender_chats_added]", str_chats_added);
                                         dictionary.Add("[sender_chats_removed]", str_chats_removed);
-                                        api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', api.ReplaceAll(data.messages[data.FindMind(19)].text, dictionary));
+                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', api.ReplaceAll(mdata.messages[mdata.FindMind(19)].text, dictionary));
                                     }
                                     else
                                     {
-                                        api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', data.messages[data.FindMind(16)].text);
+                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(16)].text);
                                     }
                                 }
                             } // добавление бесед
@@ -471,7 +474,7 @@ namespace ChatSender2
                             {
                                 data.users[ind].sender.message = msg;
                                 data.users[ind].mid = 23;
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(23)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(23)], '#');
                             } // текст рассылки
                             else if (cur_mid == 25)
                             {
@@ -480,11 +483,11 @@ namespace ChatSender2
                                 {
                                     data.users[ind].sender.minutes_between_send = time;
                                     data.users[ind].mid = 26;
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(26)], '#');
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(26)], '#');
                                 }
                                 else
                                 {
-                                    api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', data.messages[data.FindMind(27)].text);
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(27)].text);
                                 }
                             } // время между рассылками
                             else if (cur_mid == 32)
@@ -492,14 +495,14 @@ namespace ChatSender2
                                 data.users[ind].phone = msg.Trim();
                                 data.users[ind].got_phone = true;
                                 data.users[ind].mid = 33;
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(33)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(33)], '#');
                             } // номер телефона
                             else if (cur_mid == 36)
                             {
                                 data.users[ind].phone = msg.Trim();
                                 data.users[ind].got_phone = true;
                                 data.users[ind].mid = 37;
-                                api.Send_split_msg_keyboard(peer_id, data.messages[data.FindMind(37)], '#');
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(37)], '#');
                             } // номер телефона
                             else if (cur_mid == 40)
                             {
@@ -554,7 +557,6 @@ namespace ChatSender2
                                             File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                                             {
                                                 last_txnId = data.last_txnId,
-                                                messages = data.messages,
                                                 users_ids = data.users_ids,
                                                 users = new List<User>()
                                             }));
@@ -572,7 +574,7 @@ namespace ChatSender2
                             } // добавление в беседы
                             else
                             {
-                                api.Send_split_msg_keyboard(peer_id, data.messages[cur_mind], '#', "Команда не распознана");
+                                api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', "Команда не распознана");
                             }
                             File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
                         }//if found "message_new"
@@ -628,7 +630,7 @@ namespace ChatSender2
                                 data.users[ind].sender.is_on = false;
                                 data.users[ind].sender.sended_messages = 0;
                                 api.Send_msg(data.users[ind].vkid,
-                                    $"Внимание\nВаш тариф ({data.users[ind].sender.tarif.ToString()} сообщений) закончился, рассылка была остановлена"
+                                    $"Внимание\nВаш тариф ({data.users[ind].sender.tarif} сообщений) закончился, рассылка была остановлена"
                                     );
                                 data.users[ind].sender.tarif = 0;
                             }
@@ -730,7 +732,7 @@ namespace ChatSender2
                                     }
                                     else
                                     {
-                                        api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost.ToString()}r.");
+                                        api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost}r.");
                                     }
                                 }
                             }
@@ -738,7 +740,6 @@ namespace ChatSender2
                         data.last_txnId = UInt64.Parse(data_list[0]["txnId"].ToString());
                         File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                         {
-                            messages = data.messages,
                             users_ids = data.users_ids,
                             last_txnId = data.last_txnId
                         }));
@@ -766,7 +767,7 @@ namespace ChatSender2
                               )
                             )
                         {
-                            if (data.users[ind].adder.is_on) data.users[ind].adder.is_on = false;
+                            if (data.users[ind].adder.wait) data.users[ind].adder.wait = false;
                             int myind = data.FindUser(my_vk_id);
                             if (myind != -1)
                             {

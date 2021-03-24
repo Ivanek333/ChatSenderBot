@@ -51,12 +51,9 @@ namespace ChatSender2
 			last_time = DateTime.Now;
 		}
 	}
-	public class Database
-	{
-		public UInt64 last_txnId;
-		public List<User> users;
+	public class MessageData
+    {
 		public List<ReplyMessage> messages;
-		public Dictionary<int, string> users_ids;
 		public int FindMind(int mid)
 		{
 			if (mid == -1) return -1;
@@ -66,6 +63,13 @@ namespace ChatSender2
 			}
 			return -1;
 		}
+	}
+	public class Database
+	{
+		public UInt64 last_txnId;
+		public List<User> users;
+		public Dictionary<int, string> users_ids;
+		
 		public int FindUser(string vkid)
 		{
 			for (int i = 0; i < users.Count; i++)
@@ -74,9 +78,9 @@ namespace ChatSender2
 		}
 		public Database()
 		{
-			messages = new List<ReplyMessage>();
 			users = new List<User>();
 			users_ids = new Dictionary<int, string>();
+			last_txnId = 0;
 		}
 	}
 }
