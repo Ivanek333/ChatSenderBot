@@ -28,12 +28,11 @@ x86/
 bld/
 [Bb]in/[Dd]ebug/
 [Bb]in/[Rr]elease/
-[Bb]in*.deps.json
-[Bb]in*.dll
-[Bb]in*.exe
-[Bb]in*.pdb
-[Bb]in*/.runtimeconfig.dev.json
-[Bb]in*\.runtimeconfig.json
+[Bb]in*/.deps*
+[Bb]in*/.dll
+[Bb]in*/.exe
+[Bb]in*/.pdb
+[Bb]in*/.runtimeconfig*
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
