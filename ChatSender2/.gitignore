@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+![Bb]in/[Dd]ebug/netcoreapp3.1/MessageData.json
