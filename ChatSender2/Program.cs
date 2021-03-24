@@ -16,7 +16,7 @@ namespace ChatSender2
         {
             string my_vk_id = @"320317706";
             string token = @"941e434cf701f65a10ddca02e305ee0c38b30034ec2c7d9f8260615795d4f040399a31a083c54b5d675b4";
-            string path = @"";
+            string path = @"C:/BotsFiles/ChatSender2/";
             string group_id = @"203082034";
             Random rand = new Random();
             MyApi api = new MyApi
