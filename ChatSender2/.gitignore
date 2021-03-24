@@ -31,7 +31,7 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
-!bin/Debug/netcoreapp3.1/MessageData.json
+
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -351,3 +351,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+!bin/Debug/netcoreapp3.1/MessageData.json
