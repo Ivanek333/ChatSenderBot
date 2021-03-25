@@ -29,7 +29,7 @@ namespace ChatSender2
             MessageData mdata = new MessageData();
             try
             {
-                JsonConvert.PopulateObject(File.ReadAllText($"MessageData.json"), mdata);
+                JsonConvert.PopulateObject(File.ReadAllText($"{path}MessageData.json"), mdata);
                 JsonConvert.PopulateObject(File.ReadAllText($"{path}Database.json"), data);
                 foreach (var item in data.users_ids)
                 {
