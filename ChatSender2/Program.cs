@@ -49,7 +49,7 @@ namespace ChatSender2
                 {
                     if (item.ref_id == null) item.ref_id = "";
                     if (item.adder == null) item.adder = new AdderInfo();
-                    if (item.ref_code == "")
+                    if (item.ref_code == "" || item.ref_code == null)
                     {
                         string rand_chars = "123456789abcdefabcdef";
                         string user_ref_code = "";
@@ -299,7 +299,7 @@ namespace ChatSender2
                             if (to_mid == 41)
                             {
                                 //vk.me%2Fgroup_name%3Fref%3Dreferefefefre%26ref_source%3Dref_sssssource
-                                dictionary.Add("[ref_link]", $"vk.me%2Fgroup_name%3Fref%3D{data.users[ind].vkid}%26ref_source%3D{data.users[ind].ref_code}");
+                                dictionary.Add("[ref_link]", $"vk.me%2Fwrite-sendplusbot%3Fref%3D{data.users[ind].vkid}%26ref_source%3D{data.users[ind].ref_code}");
                             }
                             // исключения для блокирования переходов по меню
                             if ((cur_mid >= 7) && !data.users[ind].authed)
