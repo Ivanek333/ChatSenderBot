@@ -49,14 +49,14 @@ namespace ChatSender2
                 {
                     if (item.ref_id == null) item.ref_id = "";
                     if (item.adder == null) item.adder = new AdderInfo();
-                    if (item.ref_code == "" || item.ref_code == null)
+                    /*if (item.ref_code == "" || item.ref_code == null)
                     {
                         string rand_chars = "123456789abcdefabcdef";
                         string user_ref_code = "";
                         for (int i = 0; i < 8; i++)
                             user_ref_code += rand_chars[rand.Next() % rand_chars.Length];
                         item.ref_code = user_ref_code;
-                    }
+                    }*/
                     //if (item. == null) item. = ;
                     File.WriteAllText($"{path}Users_data/{item.vkid}.json", JsonConvert.SerializeObject(item));
                 }
@@ -166,55 +166,21 @@ namespace ChatSender2
                             string from_id = item["object"]["message"]["from_id"].ToString(); //id отправителя
                             string message_id = item["object"]["message"]["id"].ToString();   //id сообщения											  //string message_id = item["object"]["apisage"]["id"].ToString();   //id сообщения
                             api.Log($"@id{from_id} in vk.com/gim{group_id}?sel={peer_id} : '{msg}' , good_msg: '{good_msg}'");
-                            try
-                            {
-                                string ref_code = item["object"]["message"]["ref"].ToString();
-                                string ref_source = item["object"]["message"]["ref_source"].ToString();
-                                api.Send_msg(peer_id, $"Вы написали сообщение, перейдя по реферальной ссылке @id{ref_code} с кодом {ref_source}");
-                            }
-                            catch { }
+
                             bool new_user = false;
                             int ind = data.FindUser(from_id);
                             if (ind == -1)
                             {
                                 new_user = true;
-                                string rand_chars = "123456789abcdefabcdef";
+                                /*string rand_chars = "123456789abcdefabcdef";
                                 string user_ref_code = "";
                                 for (int i = 0; i < 8; i++)
                                     user_ref_code += rand_chars[rand.Next() % rand_chars.Length];
-                                data.users.Add(new User
-                                {
-                                    vkid = from_id,
-                                    mid = 1,
-                                    authed = false,
-                                    got_token = false,
-                                    got_ref = false,
-                                    ref_id = "",
-                                    ref_code = user_ref_code,
-                                    user_token = "",
-                                    sender_chats = new List<VK.Chat>(),
-                                    all_chats = new List<VK.Chat>(),
-                                    deleted_chats = new List<int>(),
-                                    sender = new SenderInfo
-                                    {
-                                        last_cind = 0,
-                                        last_time = DateTime.Now,
-                                        message = "your_message",
-                                        sended_messages = 0,
-                                        tarif = 50,
-                                        minutes_between_send = 0,
-                                        is_on = false
-                                    },
-                                    adder = new AdderInfo
-                                    {
-                                        is_on = false,
-                                        wait = false,
-                                        last_time = DateTime.Now,
-                                        last_cind = 0
-                                    }
-                                });
+                                */
+                                data.users.Add(new User());
                                 ind = data.users.Count - 1;
                                 data.users_ids.Add(ind, from_id);
+                                data.users[ind].vkid = from_id;
                                 File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                                 {
                                     last_txnId = data.last_txnId,
@@ -224,6 +190,25 @@ namespace ChatSender2
                                 File.Create($"{path}Users_data/{data.users_ids[ind]}.json").Close();
                                 File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
                             }
+                            try
+                            {
+                                if (!data.users[ind].got_ref)
+                                {
+                                    string ref_code = item["object"]["message"]["ref"].ToString();
+                                    //string ref_source = item["object"]["message"]["ref_source"].ToString();
+                                    int ref_ind = data.FindUser(ref_code);
+                                    if (ref_ind != -1)
+                                    {
+                                        data.users[ind].got_ref = true;
+                                        data.users[ind].ref_id = data.users[ref_ind].vkid;
+                                        data.users[ind].sender.tarif += 100;
+                                        data.users[ind].adminInfo.refs.Add(from_id);
+                                        api.Send_msg(data.users[ref_ind].vkid, $"У вас появился новый реферал - @id{from_id}");
+                                        api.Send_msg(peer_id, $"Вы стали рефералом @id{data.users[ref_ind].vkid} и получили бонус: +100 сообщений");
+                                    }
+                                }
+                            }
+                            catch { }
                             int cur_mid = data.users[ind].mid;
                             int cur_mind = mdata.FindMind(cur_mid);
                             int to_mid = cur_mid;
@@ -251,7 +236,7 @@ namespace ChatSender2
                             if (to_mid == 13)
                             {
                                 dictionary.Add("[sender_chats_on]", api.ChatList2String(data.users[ind].sender_chats));
-                            } 
+                            }
                             if (to_mid == 14)
                             {
                                 api.Send_msg(peer_id, "Подождите пожалуйста, прогружаем список всех ваших бесед...");
@@ -290,7 +275,7 @@ namespace ChatSender2
                             }
                             if (to_mid == 24)
                             {
-                                data.users[ind].sender.is_on = !data.users[ind].sender.is_on; 
+                                data.users[ind].sender.is_on = !data.users[ind].sender.is_on;
                             } // potential error
                             if (to_mid == 20 || to_mid == 24)
                             {
@@ -299,7 +284,7 @@ namespace ChatSender2
                             if (to_mid == 41)
                             {
                                 //vk.me%2Fgroup_name%3Fref%3Dreferefefefre%26ref_source%3Dref_sssssource
-                                dictionary.Add("[ref_link]", $"vk.me%2Fwrite-sendplusbot%3Fref%3D{data.users[ind].vkid}%26ref_source%3D{data.users[ind].ref_code}");
+                                dictionary.Add("[ref_link]", $"vk.me%2Fwrite-sendplusbot%3Fref%3D{data.users[ind].vkid}");//%26ref_source%3D{data.users[ind].ref_code}");
                             }
                             // исключения для блокирования переходов по меню
                             if ((cur_mid >= 7) && !data.users[ind].authed)
@@ -506,6 +491,7 @@ namespace ChatSender2
                                 int time = -1;
                                 if (int.TryParse(good_msg, out time))
                                 {
+                                    time = Math.Max(0, time - (data.users[ind].sender_chats.Count / 2));
                                     data.users[ind].sender.minutes_between_send = time;
                                     data.users[ind].mid = 26;
                                     api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(26)], '#');
@@ -547,46 +533,26 @@ namespace ChatSender2
                                         }
                                         else
                                         {
-                                            data.users.Add(new User
+                                            int add_ind = data.FindUser(add_user_id);
+                                            if (add_ind == -1)
                                             {
-                                                vkid = add_user_id,
-                                                mid = 1,
-                                                authed = false,
-                                                got_token = false,
-                                                got_ref = true,
-                                                ref_id = from_id,
-                                                user_token = "",
-                                                sender_chats = new List<VK.Chat>(),
-                                                all_chats = new List<VK.Chat>(),
-                                                deleted_chats = new List<int>(),
-                                                sender = new SenderInfo
+                                                data.users.Add(new User());
+                                                add_ind = data.users.Count - 1;
+                                                data.users_ids.Add(add_ind, add_user_id);
+                                                data.users[add_ind].vkid = add_user_id;
+                                                data.users[add_ind].ref_id = from_id;
+                                                data.users[add_ind].got_ref = true;
+                                                File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                                                 {
-                                                    last_cind = 0,
-                                                    last_time = DateTime.Now,
-                                                    message = "Ваше сообщение",
-                                                    sended_messages = 0,
-                                                    tarif = 50,
-                                                    minutes_between_send = 0,
-                                                    is_on = false
-                                                },
-                                                adder = new AdderInfo
-                                                {
-                                                    is_on = true,
-                                                    wait = false,
-                                                    last_time = DateTime.Now,
-                                                    last_cind = 0
-                                                }
-                                            });
-                                            int add_ind = data.users.Count - 1;
-                                            data.users_ids.Add(add_ind, add_user_id);
-                                            File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
-                                            {
-                                                last_txnId = data.last_txnId,
-                                                users_ids = data.users_ids,
-                                                users = new List<User>()
-                                            }));
-                                            File.Create($"{path}Users_data/{data.users_ids[add_ind]}.json").Close();
-                                            File.WriteAllText($"{path}Users_data/{data.users_ids[add_ind]}.json", JsonConvert.SerializeObject(data.users[add_ind]));
+                                                    last_txnId = data.last_txnId,
+                                                    users_ids = data.users_ids,
+                                                    users = new List<User>()
+                                                }));
+                                                File.Create($"{path}Users_data/{data.users[add_ind].vkid}.json").Close();
+                                                api.Send_msg(peer_id, $"У вас появился новый реферал - @id{from_id}");
+                                            }
+                                            data.users[add_ind].adder.is_on = true;
+                                            File.WriteAllText($"{path}Users_data/{data.users[add_ind].vkid}.json", JsonConvert.SerializeObject(data.users[add_ind]));
                                             api.Send_msg(my_vk_id, $"Позитивный чел @id{from_id} начал добавять в беседы @id{add_user_id}");
                                             api.Send_msg(peer_id, "Добавление начато, вы получите сообщение, когда оно будет закончено");
                                         }
@@ -610,10 +576,9 @@ namespace ChatSender2
                          //Thread.Sleep(200);
                     }//foreach
                 }//if has updates
-                
+
 
                 //sender
-                DateTime dt = DateTime.Now;
                 for (int ind = 0; ind < data.users.Count; ind++)
                 {
                     if (data.users[ind].sender.is_on)
@@ -674,7 +639,7 @@ namespace ChatSender2
                 }
 
                 //qiwi
-                if (counter_main % 30 == 0) 
+                if (counter_main % 30 == 0)
                 {
                     try
                     {
@@ -687,81 +652,79 @@ namespace ChatSender2
                                 Console.WriteLine(i.ToString());
                                 if (UInt64.Parse(data_list[i]["txnId"].ToString()) > data.last_txnId)
                                 {
-                                    bool all_ok = true;
                                     string credits = data_list[i]["account"].ToString();
-                                    int cost = (int)(MathF.Round(float.Parse(data_list[i]["sum"]["amount"].ToString()) / 5f)) * 5;
+                                    int cost = (int)MathF.Round(float.Parse(data_list[i]["sum"]["amount"].ToString()) / 5f) * 5;
                                     int ind = -1;
                                     int new_tarif = 0;
-                                    for (int l = 0; l < data.users.Count; l++)
+                                    try
                                     {
-                                        if (data.users[l].phone == credits)
+                                        for (int l = 0; l < data.users.Count; l++)
                                         {
-                                            ind = l;
-                                            break;
+                                            if (data.users[l].phone == credits)
+                                            {
+                                                ind = l;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    if (ind == -1)
-                                    {
-                                        all_ok = false;
-                                        Console.WriteLine("User not found in database");
-                                    }
-                                    else
-                                    {
-                                        bool inviting = false;
-                                        switch (cost)
-                                        {
-                                            case 50:
-                                                new_tarif = 5000;
-                                                break;
-                                            case 100:
-                                                new_tarif = 12000;
-                                                break;
-                                            case 150:
-                                                new_tarif = 20000;
-                                                break;
-                                            case 200:
-                                                new_tarif = 30000;
-                                                break;
-                                            case 300:
-                                                new_tarif = 60000;
-                                                break;
-                                            case 60:
-                                                inviting = true;
-                                                break;
-                                        }
-                                        if (new_tarif != 0)
-                                        {
-                                            data.users[ind].sender.tarif -= data.users[ind].sender.sended_messages;
-                                            data.users[ind].sender.tarif += new_tarif;
-                                            data.users[ind].sender.sended_messages = 0;
-                                            api.Send_msg(data.users[ind].vkid, $"Оплата успешно проведена.\nВаш новый тариф - {data.users[ind].sender.tarif}");
-                                        } 
-                                        else if (inviting)
-                                        {
-                                            data.users[ind].adder = new AdderInfo();
-                                            data.users[ind].adder.is_on = true;
-                                            api.Send_msg(data.users[ind].vkid, $"Оплата добавления в беседы произведена успешно");
-                                        }
-                                        else
-                                        {
-                                            all_ok = false;
-                                            Console.WriteLine("Wrong cost error");
-                                        }
-                                    }
-                                    if (!all_ok)
-                                    {
                                         if (ind == -1)
                                         {
-                                            api.Log("QIWI PAYMENT ERROR!!!");
+                                            throw new Exception("User not found in database");
                                         }
                                         else
                                         {
-                                            api.Send_msg(data.users[ind].vkid, "Возникла проблема при оплате, напишите @ne_ivan_tochno и укажите свой номер телефона");
+                                            bool inviting = false;
+                                            switch (cost)
+                                            {
+                                                case 50:
+                                                    new_tarif = 5000;
+                                                    break;
+                                                case 100:
+                                                    new_tarif = 12000;
+                                                    break;
+                                                case 150:
+                                                    new_tarif = 20000;
+                                                    break;
+                                                case 200:
+                                                    new_tarif = 30000;
+                                                    break;
+                                                case 300:
+                                                    new_tarif = 60000;
+                                                    break;
+                                                case 60:
+                                                    inviting = true;
+                                                    break;
+                                            }
+                                            if (new_tarif != 0)
+                                            {
+                                                data.users[ind].sender.tarif -= data.users[ind].sender.sended_messages;
+                                                data.users[ind].sender.tarif += new_tarif;
+                                                data.users[ind].sender.sended_messages = 0;
+                                                api.Send_msg(data.users[ind].vkid, $"Оплата успешно проведена.\nВаш новый тариф - {data.users[ind].sender.tarif}");
+                                            }
+                                            else if (inviting)
+                                            {
+                                                data.users[ind].adder = new AdderInfo();
+                                                data.users[ind].adder.is_on = true;
+                                                api.Send_msg(data.users[ind].vkid, $"Оплата добавления в беседы произведена успешно");
+                                            }
+                                            else
+                                            {
+                                                throw new Exception("Wrong cost");
+                                            }
+                                            if (data.users[ind].got_ref)
+                                            {
+                                                int ref_ind = data.FindUser(data.users[ind].ref_id); //Потенциальная проблема при ошибке базы
+                                                data.users[ref_ind].adminInfo.balance += (int)(cost / 2);
+                                                api.Send_msg(data.users[ind].ref_id, $"Ваш реферал @id{data.users[ind].vkid} оплатил {cost}р, на вашем балансе теперь {data.users[ref_ind].adminInfo.balance}");
+                                            }
                                         }
-                                    }
-                                    else
-                                    {
                                         api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost}r.");
+                                    }
+                                    catch (Exception payment_ex)
+                                    {
+                                        api.Log("Payment error: " + payment_ex.Message);
+                                        if (ind != -1)
+                                            api.Send_msg(data.users[ind].vkid, "Возникла проблема при оплате, напишите @ne_ivan_tochno и укажите свой номер телефона");
                                     }
                                 }
                             }

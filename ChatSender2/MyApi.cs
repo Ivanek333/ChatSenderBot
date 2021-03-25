@@ -253,7 +253,7 @@ namespace ChatSender2
                 lines = lines.Remove(lines.IndexOf('\n'), 1);
             }
             response.Close();
-            Console.WriteLine("Request complited");
+            Console.WriteLine("Qiwi request complited");
             return lines;
         }
         public string InviteUser(string chat_id, string user_id, string token)
