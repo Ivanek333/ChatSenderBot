@@ -10,6 +10,7 @@ namespace ChatSender2
 		public string user_token;
 		public string phone;
 		public string ref_id;
+		public string ref_code;
 		public bool authed, got_token, got_phone, is_admin, got_ref;
 		public List<VK.Chat> sender_chats;
 		public List<VK.Chat> all_chats;

@@ -77,7 +77,7 @@ namespace ChatSender2
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("send download error: " + json + "\n");
+				Console.WriteLine("send download error: " + e.Message + "\n" + json + "\n");
 				Console.WriteLine(url);
 			}
 			if (json.Contains("error")) Console.WriteLine("Send error: " + json);

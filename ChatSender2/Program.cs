@@ -49,6 +49,14 @@ namespace ChatSender2
                 {
                     if (item.ref_id == null) item.ref_id = "";
                     if (item.adder == null) item.adder = new AdderInfo();
+                    if (item.ref_code == "")
+                    {
+                        string rand_chars = "123456789abcdefabcdef";
+                        string user_ref_code = "";
+                        for (int i = 0; i < 8; i++)
+                            user_ref_code += rand_chars[rand.Next() % rand_chars.Length];
+                        item.ref_code = user_ref_code;
+                    }
                     //if (item. == null) item. = ;
                     File.WriteAllText($"{path}Users_data/{item.vkid}.json", JsonConvert.SerializeObject(item));
                 }
@@ -158,11 +166,22 @@ namespace ChatSender2
                             string from_id = item["object"]["message"]["from_id"].ToString(); //id отправителя
                             string message_id = item["object"]["message"]["id"].ToString();   //id сообщения											  //string message_id = item["object"]["apisage"]["id"].ToString();   //id сообщения
                             api.Log($"@id{from_id} in vk.com/gim{group_id}?sel={peer_id} : '{msg}' , good_msg: '{good_msg}'");
+                            try
+                            {
+                                string ref_code = item["object"]["message"]["ref"].ToString();
+                                string ref_source = item["object"]["message"]["ref_source"].ToString();
+                                api.Send_msg(peer_id, $"Вы написали сообщение, перейдя по реферальной ссылке @id{ref_code} с кодом {ref_source}");
+                            }
+                            catch { }
                             bool new_user = false;
                             int ind = data.FindUser(from_id);
                             if (ind == -1)
                             {
                                 new_user = true;
+                                string rand_chars = "123456789abcdefabcdef";
+                                string user_ref_code = "";
+                                for (int i = 0; i < 8; i++)
+                                    user_ref_code += rand_chars[rand.Next() % rand_chars.Length];
                                 data.users.Add(new User
                                 {
                                     vkid = from_id,
@@ -171,6 +190,7 @@ namespace ChatSender2
                                     got_token = false,
                                     got_ref = false,
                                     ref_id = "",
+                                    ref_code = user_ref_code,
                                     user_token = "",
                                     sender_chats = new List<VK.Chat>(),
                                     all_chats = new List<VK.Chat>(),
@@ -275,6 +295,11 @@ namespace ChatSender2
                             if (to_mid == 20 || to_mid == 24)
                             {
                                 dictionary.Add("[sender_state]", data.users[ind].sender.is_on ? "включена" : "выключена");
+                            }
+                            if (to_mid == 41)
+                            {
+                                //vk.me%2Fgroup_name%3Fref%3Dreferefefefre%26ref_source%3Dref_sssssource
+                                dictionary.Add("[ref_link]", $"vk.me%2Fgroup_name%3Fref%3D{data.users[ind].vkid}%26ref_source%3D{data.users[ind].ref_code}");
                             }
                             // исключения для блокирования переходов по меню
                             if ((cur_mid >= 7) && !data.users[ind].authed)
@@ -565,6 +590,10 @@ namespace ChatSender2
                                             api.Send_msg(my_vk_id, $"Позитивный чел @id{from_id} начал добавять в беседы @id{add_user_id}");
                                             api.Send_msg(peer_id, "Добавление начато, вы получите сообщение, когда оно будет закончено");
                                         }
+                                    }
+                                    else
+                                    {
+                                        api.Send_msg(peer_id, "Указанный пользователь не обнаружен");
                                     }
                                 }
                                 else
