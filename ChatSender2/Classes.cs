@@ -76,10 +76,21 @@ namespace ChatSender2
     {
 		public List<string> refs;
 		public int balance;
+		public string temp_user;
 		public AdminInfo()
         {
 			refs = new List<string>();
 			balance = 0;
+			temp_user = "";
+        }
+		public string refs_ToString()
+        {
+			string ret = "";
+			for (int i = 0; i < refs.Count; i++)
+            {
+				ret += $"{i+1}. @id{refs[i]}\n";
+            }
+			return ret;
         }
     }
 	public class MessageData
