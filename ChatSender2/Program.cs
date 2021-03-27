@@ -609,7 +609,8 @@ namespace ChatSender2
                                             else
                                             {
                                                 data.users[ind].adminInfo.temp_user_ind = add_ind;
-                                                api.Send_msg(peer_id, "Дальше доделаю завтра");
+                                                data.users[ind].mid = 46;
+                                                api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(46)].text);
                                             }
                                         }
                                     }
