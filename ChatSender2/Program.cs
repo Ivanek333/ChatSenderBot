@@ -610,7 +610,7 @@ namespace ChatSender2
                                             {
                                                 data.users[ind].adminInfo.temp_user_ind = add_ind;
                                                 data.users[ind].mid = 46;
-                                                api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(46)].text);
+                                                api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(46)], '#', mdata.messages[mdata.FindMind(46)].text);
                                             }
                                         }
                                     }
@@ -633,7 +633,7 @@ namespace ChatSender2
                                     data.users[data.users[ind].adminInfo.temp_user_ind].sender.tarif += tar;
                                     data.users[ind].mid = 47;
                                     dictionary.Add("[admin_balance]", data.users[ind].adminInfo.balance.ToString());
-                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', api.ReplaceAll(mdata.messages[mdata.FindMind(47)].text, dictionary));
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(47)], '#', api.ReplaceAll(mdata.messages[mdata.FindMind(47)].text, dictionary));
                                 }
                                 else
                                 {
