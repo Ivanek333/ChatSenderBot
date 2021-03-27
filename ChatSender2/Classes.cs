@@ -12,9 +12,6 @@ namespace ChatSender2
 		public string ref_id;
 		//public string ref_code;
 		public bool authed, got_token, got_phone, is_admin, got_ref;
-		public List<VK.Chat> sender_chats;
-		public List<VK.Chat> all_chats;
-		public List<int> deleted_chats;
 		public SenderInfo sender;
 		public AdderInfo adder;
 		public AdminInfo adminInfo;
@@ -31,9 +28,6 @@ namespace ChatSender2
 			got_phone = false;
 			is_admin = false;
 			got_ref = false;
-			sender_chats = new List<VK.Chat>();
-			all_chats = new List<VK.Chat>();
-			deleted_chats = new List<int>();
 			sender = new SenderInfo();
 			adder = new AdderInfo();
 			adminInfo = new AdminInfo();
@@ -44,19 +38,29 @@ namespace ChatSender2
 		public bool is_on;
 		public int minutes_between_send;
 		public DateTime last_time;
+		public DateTime last_get_time;
 		public int last_cind;
 		public string message;
 		public int sended_messages;
 		public int tarif;
+		public List<VK.Chat> sender_chats;
+		public List<VK.Chat> all_chats;
+		public List<int> deleted_chats;
+		public bool changed;
 		public SenderInfo()
 		{
 			is_on = false;
 			minutes_between_send = 60;
 			last_time = DateTime.Now;
+			last_get_time = DateTime.Now;
 			last_cind = 0;
 			message = "your_message";
 			sended_messages = 0;
 			tarif = 50;
+			sender_chats = new List<VK.Chat>();
+			all_chats = new List<VK.Chat>();
+			deleted_chats = new List<int>();
+			changed = false;
 		}
 	}
 	public class AdderInfo
@@ -77,11 +81,13 @@ namespace ChatSender2
 		public List<string> refs;
 		public int balance;
 		public string temp_user;
+		public int temp_user_ind;
 		public AdminInfo()
         {
 			refs = new List<string>();
 			balance = 0;
 			temp_user = "";
+			temp_user_ind = 0;
         }
 		public string refs_ToString()
         {

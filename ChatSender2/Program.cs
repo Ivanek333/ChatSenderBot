@@ -203,7 +203,7 @@ namespace ChatSender2
                                             data.users[ind].got_ref = true;
                                             data.users[ind].ref_id = data.users[ref_ind].vkid;
                                             data.users[ind].sender.tarif += 100;
-                                            data.users[ind].adminInfo.refs.Add(from_id);
+                                            data.users[ref_ind].adminInfo.refs.Add(from_id);
                                             api.Send_msg(data.users[ref_ind].vkid, $"У вас появился новый реферал - @id{from_id}");
                                             api.Send_msg(peer_id, $"Вы стали рефералом @id{data.users[ref_ind].vkid} и получили бонус: +100 сообщений");
                                         }
@@ -232,37 +232,45 @@ namespace ChatSender2
                             }
                             if (to_mid == 12)
                             {
-                                dictionary.Add("[sender_chats_count]", data.users[ind].sender_chats.Count.ToString());
+                                dictionary.Add("[sender_chats_count]", data.users[ind].sender.sender_chats.Count.ToString());
                             }
                             if (to_mid == 13)
                             {
-                                dictionary.Add("[sender_chats_on]", api.ChatList2String(data.users[ind].sender_chats));
+                                dictionary.Add("[sender_chats_on]", api.ChatList2String(data.users[ind].sender.sender_chats));
                             }
                             if (to_mid == 14)
                             {
-                                api.Send_msg(peer_id, "Подождите пожалуйста, прогружаем список всех ваших бесед...");
-                                data.users[ind].all_chats = api.GetChats(data.users[ind].user_token);
-                                int t = 0;
-                                if (data.users[ind].deleted_chats.Count > 0)
-                                    for (int i = 0; i < data.users[ind].all_chats.Count; i++)
-                                    {
-                                        while ((data.users[ind].deleted_chats[t] < int.Parse(data.users[ind].all_chats[i].peer_id)) && (t < data.users[ind].deleted_chats.Count - 1))
-                                            t++;
-                                        //Console.WriteLine(t);
-                                        if (data.users[ind].all_chats[i].peer_id == data.users[ind].deleted_chats[t].ToString())
-                                            data.users[ind].all_chats[i].mark = 2;
-                                    }
-                                t = 0;
-                                if (data.users[ind].sender_chats.Count > 0)
-                                    for (int i = 0; i < data.users[ind].all_chats.Count; i++)
-                                    {
-                                        while ((int.Parse(data.users[ind].sender_chats[t].peer_id) < int.Parse(data.users[ind].all_chats[i].peer_id)) && (t < data.users[ind].sender_chats.Count - 1))
-                                            t++;
-                                        //Console.WriteLine(t);
-                                        if (data.users[ind].all_chats[i].peer_id == data.users[ind].sender_chats[t].peer_id)
-                                            data.users[ind].all_chats[i].mark = 1;
-                                    }
-                                dictionary.Add("[sender_chats_all]", api.ChatList2String(data.users[ind].all_chats));
+                                api.Send_msg(peer_id, "Прогружаем список всех ваших бесед...");
+                                if (data.users[ind].sender.last_get_time.Hour != DateTime.Now.Hour)
+                                {
+                                    data.users[ind].sender.last_get_time = DateTime.Now;
+                                    data.users[ind].sender.all_chats = api.GetChats(data.users[ind].user_token);
+                                }
+                                if (data.users[ind].sender.changed)
+                                {
+                                    data.users[ind].sender.changed = false;
+                                    int t = 0;
+                                    if (data.users[ind].sender.deleted_chats.Count > 0)
+                                        for (int i = 0; i < data.users[ind].sender.all_chats.Count; i++)
+                                        {
+                                            while ((data.users[ind].sender.deleted_chats[t] < int.Parse(data.users[ind].sender.all_chats[i].peer_id)) && (t < data.users[ind].sender.deleted_chats.Count - 1))
+                                                t++;
+                                            //Console.WriteLine(t);
+                                            if (data.users[ind].sender.all_chats[i].peer_id == data.users[ind].sender.deleted_chats[t].ToString())
+                                                data.users[ind].sender.all_chats[i].mark = 2;
+                                        }
+                                    t = 0;
+                                    if (data.users[ind].sender.sender_chats.Count > 0)
+                                        for (int i = 0; i < data.users[ind].sender.all_chats.Count; i++)
+                                        {
+                                            while ((int.Parse(data.users[ind].sender.sender_chats[t].peer_id) < int.Parse(data.users[ind].sender.all_chats[i].peer_id)) && (t < data.users[ind].sender.sender_chats.Count - 1))
+                                                t++;
+                                            //Console.WriteLine(t);
+                                            if (data.users[ind].sender.all_chats[i].peer_id == data.users[ind].sender.sender_chats[t].peer_id)
+                                                data.users[ind].sender.all_chats[i].mark = 1;
+                                        }
+                                }
+                                dictionary.Add("[sender_chats_all]", api.ChatList2String(data.users[ind].sender.all_chats));
                             }
                             if (to_mid == 20 || to_mid == 28)
                             {
@@ -284,7 +292,7 @@ namespace ChatSender2
                             }
                             if (to_mid == 41)
                             {
-                                dictionary.Add("[ref_link]", $"vk.me%2Fwrite-sendplusbot%3Fref%3D{data.users[ind].vkid}");//%26ref_source%3D{data.users[ind].ref_code}");
+                                dictionary.Add("[ref_link]", $"vk.me%2Fsendplusbot%3Fref%3D{data.users[ind].vkid}");//%26ref_source%3D{data.users[ind].ref_code}");
                             }
                             if (to_mid == 42)
                             {
@@ -368,9 +376,9 @@ namespace ChatSender2
                                     if (int.TryParse(good_msg, out cid))
                                     {
                                         int ind_all = -1, ind_send = -1;
-                                        for (int i = 0; i < data.users[ind].all_chats.Count; i++)
+                                        for (int i = 0; i < data.users[ind].sender.all_chats.Count; i++)
                                         {
-                                            if (int.Parse(data.users[ind].all_chats[i].peer_id) == cid)
+                                            if (int.Parse(data.users[ind].sender.all_chats[i].peer_id) == cid)
                                             {
                                                 ind_all = i;
                                                 break;
@@ -378,33 +386,33 @@ namespace ChatSender2
                                         }
                                         if (ind_all != -1)
                                         {
-                                            for (int i = 0; i < data.users[ind].sender_chats.Count; i++)
+                                            for (int i = 0; i < data.users[ind].sender.sender_chats.Count; i++)
                                             {
-                                                if (int.Parse(data.users[ind].sender_chats[i].peer_id) == cid)
+                                                if (int.Parse(data.users[ind].sender.sender_chats[i].peer_id) == cid)
                                                 {
                                                     ind_send = i;
                                                     break;
                                                 }
                                             }
-                                            for (int i = 0; i < data.users[ind].deleted_chats.Count; i++)
+                                            for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
                                             {
-                                                if (data.users[ind].deleted_chats[i] == cid)
+                                                if (data.users[ind].sender.deleted_chats[i] == cid)
                                                 {
-                                                    data.users[ind].deleted_chats.RemoveAt(i);
+                                                    data.users[ind].sender.deleted_chats.RemoveAt(i);
                                                     break;
                                                 }
                                             }
                                             if (ind_send == -1)
                                             {
-                                                data.users[ind].all_chats[ind_all].mark = 1;
-                                                data.users[ind].sender_chats.Add(data.users[ind].all_chats[ind_all]);
-                                                data.users[ind].sender_chats.Sort();
+                                                data.users[ind].sender.all_chats[ind_all].mark = 1;
+                                                data.users[ind].sender.sender_chats.Add(data.users[ind].sender.all_chats[ind_all]);
+                                                data.users[ind].sender.sender_chats.Sort();
                                                 api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(17)].text);
                                             }
                                             else
                                             {
-                                                data.users[ind].all_chats[ind_all].mark = 0;
-                                                data.users[ind].sender_chats.RemoveAt(ind_send);
+                                                data.users[ind].sender.all_chats[ind_all].mark = 0;
+                                                data.users[ind].sender.sender_chats.RemoveAt(ind_send);
                                                 api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(18)].text);
                                             }
                                         }
@@ -427,9 +435,9 @@ namespace ChatSender2
                                         for (int cid = cid_from; cid <= cid_to; cid++)
                                         {
                                             int ind_all = -1, ind_send = -1;
-                                            for (int i = 0; i < data.users[ind].all_chats.Count; i++)
+                                            for (int i = 0; i < data.users[ind].sender.all_chats.Count; i++)
                                             {
-                                                if (int.Parse(data.users[ind].all_chats[i].peer_id) == cid)
+                                                if (int.Parse(data.users[ind].sender.all_chats[i].peer_id) == cid)
                                                 {
                                                     ind_all = i;
                                                     break;
@@ -437,9 +445,9 @@ namespace ChatSender2
                                             }
                                             if (ind_all != -1)
                                             {
-                                                for (int i = 0; i < data.users[ind].sender_chats.Count; i++)
+                                                for (int i = 0; i < data.users[ind].sender.sender_chats.Count; i++)
                                                 {
-                                                    if (int.Parse(data.users[ind].sender_chats[i].peer_id) == cid)
+                                                    if (int.Parse(data.users[ind].sender.sender_chats[i].peer_id) == cid)
                                                     {
                                                         ind_send = i;
                                                         break;
@@ -447,27 +455,27 @@ namespace ChatSender2
                                                 }
                                                 if (ind_send == -1)
                                                 {
-                                                    for (int i = 0; i < data.users[ind].deleted_chats.Count; i++)
+                                                    for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
                                                     {
-                                                        if (data.users[ind].deleted_chats[i] == cid)
+                                                        if (data.users[ind].sender.deleted_chats[i] == cid)
                                                         {
-                                                            data.users[ind].deleted_chats.RemoveAt(i);
+                                                            data.users[ind].sender.deleted_chats.RemoveAt(i);
                                                             break;
                                                         }
                                                     }
-                                                    data.users[ind].all_chats[ind_all].mark = 1;
-                                                    data.users[ind].sender_chats.Add(data.users[ind].all_chats[ind_all]);
+                                                    data.users[ind].sender.all_chats[ind_all].mark = 1;
+                                                    data.users[ind].sender.sender_chats.Add(data.users[ind].sender.all_chats[ind_all]);
                                                     chats_added.Add(cid);
                                                 }
                                                 else
                                                 {
-                                                    data.users[ind].all_chats[ind_all].mark = 0;
-                                                    data.users[ind].sender_chats.RemoveAt(ind_send);
+                                                    data.users[ind].sender.all_chats[ind_all].mark = 0;
+                                                    data.users[ind].sender.sender_chats.RemoveAt(ind_send);
                                                     chats_removed.Add(cid);
                                                 }
                                             }
                                         }
-                                        data.users[ind].sender_chats.Sort();
+                                        data.users[ind].sender.sender_chats.Sort();
                                         string str_chats_added = "", str_chats_removed = "";
                                         foreach (int id in chats_added)
                                             str_chats_added += id.ToString() + ", ";
@@ -498,7 +506,7 @@ namespace ChatSender2
                                 int time = -1;
                                 if (int.TryParse(good_msg, out time))
                                 {
-                                    time = Math.Max(0, time - (data.users[ind].sender_chats.Count / 2));
+                                    time = Math.Max(0, time - (data.users[ind].sender.sender_chats.Count / 2));
                                     data.users[ind].sender.minutes_between_send = time;
                                     data.users[ind].mid = 26;
                                     api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(26)], '#');
@@ -600,6 +608,7 @@ namespace ChatSender2
                                             }
                                             else
                                             {
+                                                data.users[ind].adminInfo.temp_user_ind = add_ind;
                                                 api.Send_msg(peer_id, "Дальше доделаю завтра");
                                             }
                                         }
@@ -616,54 +625,18 @@ namespace ChatSender2
                             } // добавление тарифа
                             else if (cur_mid == 46)
                             {
-                                int cid = -1;
-                                if (int.TryParse(good_msg, out cid))
+                                int tar = 0;
+                                if (int.TryParse(good_msg, out tar))
                                 {
-                                    int ind_all = -1, ind_send = -1;
-                                    for (int i = 0; i < data.users[ind].all_chats.Count; i++)
-                                    {
-                                        if (int.Parse(data.users[ind].all_chats[i].peer_id) == cid)
-                                        {
-                                            ind_all = i;
-                                            break;
-                                        }
-                                    }
-                                    if (ind_all != -1)
-                                    {
-                                        for (int i = 0; i < data.users[ind].sender_chats.Count; i++)
-                                        {
-                                            if (int.Parse(data.users[ind].sender_chats[i].peer_id) == cid)
-                                            {
-                                                ind_send = i;
-                                                break;
-                                            }
-                                        }
-                                        for (int i = 0; i < data.users[ind].deleted_chats.Count; i++)
-                                        {
-                                            if (data.users[ind].deleted_chats[i] == cid)
-                                            {
-                                                data.users[ind].deleted_chats.RemoveAt(i);
-                                                break;
-                                            }
-                                        }
-                                        if (ind_send == -1)
-                                        {
-                                            data.users[ind].all_chats[ind_all].mark = 1;
-                                            data.users[ind].sender_chats.Add(data.users[ind].all_chats[ind_all]);
-                                            data.users[ind].sender_chats.Sort();
-                                            api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(17)].text);
-                                        }
-                                        else
-                                        {
-                                            data.users[ind].all_chats[ind_all].mark = 0;
-                                            data.users[ind].sender_chats.RemoveAt(ind_send);
-                                            api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(18)].text);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', mdata.messages[mdata.FindMind(16)].text);
-                                    }
+                                    data.users[ind].adminInfo.balance -= (int)MathF.Round(tar * 0.006f);
+                                    data.users[data.users[ind].adminInfo.temp_user_ind].sender.tarif += tar;
+                                    data.users[ind].mid = 47;
+                                    dictionary.Add("[admin_balance]", data.users[ind].adminInfo.balance.ToString());
+                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', api.ReplaceAll(mdata.messages[mdata.FindMind(47)].text, dictionary));
+                                }
+                                else
+                                {
+                                    api.Send_msg(peer_id, "Не удалось получить число, попробуйте ещё раз");
                                 }
                             }
                             else
@@ -693,24 +666,25 @@ namespace ChatSender2
                                 (data.users[ind].sender.last_cind > 0)
                             ) &&
                             (data.users[ind].sender.sended_messages <= data.users[ind].sender.tarif) &&
-                            (data.users[ind].sender_chats.Count > 0) &&
+                            (data.users[ind].sender.sender_chats.Count > 0) &&
                             (data.users[ind].sender.last_cind >= 0) &&
-                            (data.users[ind].sender_chats.Count > data.users[ind].sender.last_cind)
+                            (data.users[ind].sender.sender_chats.Count > data.users[ind].sender.last_cind)
                         )
                         {
                             string response = api.Send_user_msg(
                                 data.users[ind].user_token,
-                                data.users[ind].sender_chats[data.users[ind].sender.last_cind].peer_id,
+                                data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id,
                                 data.users[ind].sender.message
                                 );
-                            Console.WriteLine(DateTime.Now.ToLongTimeString() + " - sent in " + data.users[ind].sender_chats[data.users[ind].sender.last_cind].peer_id + " from " + data.users[ind].vkid);
+                            Console.WriteLine(DateTime.Now.ToLongTimeString() + " - sent in " + data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id + " from " + data.users[ind].vkid);
                             if (response.Contains("error"))
                             {
-                                data.users[ind].deleted_chats.Add(int.Parse(data.users[ind].sender_chats[data.users[ind].sender.last_cind].peer_id));
-                                data.users[ind].sender_chats.RemoveAt(data.users[ind].sender.last_cind);
+                                data.users[ind].sender.changed = true;
+                                data.users[ind].sender.deleted_chats.Add(int.Parse(data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id));
+                                data.users[ind].sender.sender_chats.RemoveAt(data.users[ind].sender.last_cind);
                                 string error_msg = JObject.Parse(response)["error"]["error_msg"].ToString();
                                 api.Send_msg(data.users[ind].vkid, "Возникла ошибка с беседой " +
-                                    data.users[ind].deleted_chats[data.users[ind].deleted_chats.Count - 1].ToString() +
+                                    data.users[ind].sender.deleted_chats[data.users[ind].sender.deleted_chats.Count - 1].ToString() +
                                     ":\n" + error_msg + "\nБеседа удалена из списка рассылки");
                             }
                             else
@@ -728,7 +702,7 @@ namespace ChatSender2
                                 data.users[ind].sender.tarif = 0;
                             }
                             data.users[ind].sender.last_cind++;
-                            if (data.users[ind].sender.last_cind >= data.users[ind].sender_chats.Count)
+                            if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
                                 data.users[ind].sender.last_cind = 0;
                             data.users[ind].sender.last_time = DateTime.Now;
                             File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
@@ -862,25 +836,22 @@ namespace ChatSender2
                             int myind = data.FindUser(my_vk_id);
                             if (myind != -1)
                             {
-                                api.InviteUser(data.users[myind].sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
-                                Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
+                                api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
+                                Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
                                 data.users[ind].adder.last_time = DateTime.Now;
                                 data.users[ind].adder.last_cind++;
                                 if (data.users[ind].adder.last_cind % 20 == 0)
                                 {
                                     data.users[ind].adder.wait = true;
                                 }
-                                if (data.users[ind].adder.last_cind >= data.users[myind].sender_chats.Count)
+                                if (data.users[ind].adder.last_cind >= data.users[myind].sender.sender_chats.Count)
                                 {
                                     data.users[ind].adder.is_on = false;
                                     if (data.users[ind].got_ref)
                                     {
                                         api.Send_msg(data.users[ind].ref_id, $"Добавление @id{data.users[ind].vkid} в беседы успешно закончено");
                                     }
-                                    else
-                                    {
-                                        api.Send_msg(data.users[ind].vkid, "Добавление в беседы успешно закончено");
-                                    }
+                                    api.Send_msg(data.users[ind].vkid, "Добавление в беседы успешно закончено");
                                 }
                                 File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
                             }
