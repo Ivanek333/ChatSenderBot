@@ -656,13 +656,14 @@ namespace ChatSender2
                 {
                     if (data.users[ind].sender.is_on)
                     {
+                        Console.WriteLine($"{data.users[ind].vkid} - sender is on");
                         if
                         (
-                            (((DateTime.Now.Second + 60 - data.users[ind].sender.last_time.Second) % 60) >= 30) &&
+                            ((Math.Abs(DateTime.Now.Second + 60 - data.users[ind].sender.last_time.Second) % 60) >= 30) &&
                             (
                                 (
                                     (data.users[ind].sender.last_cind == 0) &&
-                                    ((DateTime.Now.Minute + DateTime.Now.Hour * 60 + 1440 - (data.users[ind].sender.last_time.Minute + data.users[ind].sender.last_time.Hour * 60)) % 1440 >= data.users[ind].sender.minutes_between_send)
+                                    (Math.Abs(DateTime.Now.Minute + DateTime.Now.Hour * 60 + 1440 - (data.users[ind].sender.last_time.Minute + data.users[ind].sender.last_time.Hour * 60)) % 1440 >= data.users[ind].sender.minutes_between_send)
                                 ) ||
                                 (data.users[ind].sender.last_cind > 0)
                             ) &&
