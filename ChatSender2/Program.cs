@@ -656,8 +656,12 @@ namespace ChatSender2
                 {
                     if (data.users[ind].sender.is_on)
                     {
-                        Console.WriteLine($"{data.users[ind].vkid} - sender is on");
+                        /*Console.WriteLine($"{data.users[ind].vkid} - sender is on");
                         Console.WriteLine($"Time now: {DateTime.Now.ToLongTimeString()}, last time: {data.users[ind].sender.last_time.ToLongTimeString()}");
+                        Console.WriteLine($"ind: {data.users[ind].sender.last_cind}, wait: {data.users[ind].sender.minutes_between_send}, min betw: {Math.Abs(DateTime.Now.Minute + DateTime.Now.Hour * 60 - (data.users[ind].sender.last_time.Minute + data.users[ind].sender.last_time.Hour * 60))}");
+                        Console.WriteLine($"Sec: {Math.Abs(DateTime.Now.Second - data.users[ind].sender.last_time.Second)}");
+                        Console.WriteLine($"sm: {data.users[ind].sender.sended_messages}, tarif: {data.users[ind].sender.tarif}, count: {data.users[ind].sender.sender_chats.Count}");
+                        */
                         if
                         (
                             (Math.Abs(DateTime.Now.Second - data.users[ind].sender.last_time.Second) >= 30) &&
@@ -670,15 +674,16 @@ namespace ChatSender2
                             ) &&
                             (data.users[ind].sender.sended_messages <= data.users[ind].sender.tarif) &&
                             (data.users[ind].sender.sender_chats.Count > 0) &&
-                            (data.users[ind].sender.last_cind >= 0) &&
-                            (data.users[ind].sender.sender_chats.Count > data.users[ind].sender.last_cind)
+                            (data.users[ind].sender.last_cind >= 0)
                         )
                         {
+                            Console.WriteLine("here");
                             string response = api.Send_user_msg(
                                 data.users[ind].user_token,
                                 data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id,
                                 data.users[ind].sender.message
                                 );
+                            data.users[ind].sender.last_cind++;
                             Console.WriteLine(DateTime.Now.ToLongTimeString() + " - sent in " + data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id + " from " + data.users[ind].vkid);
                             if (response.Contains("error"))
                             {
@@ -704,7 +709,6 @@ namespace ChatSender2
                                     );
                                 data.users[ind].sender.tarif = 0;
                             }
-                            data.users[ind].sender.last_cind++;
                             if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
                                 data.users[ind].sender.last_cind = 0;
                             data.users[ind].sender.last_time = DateTime.Now;
