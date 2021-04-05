@@ -678,12 +678,17 @@ namespace ChatSender2
                         )
                         {
                             Console.WriteLine("here");
+
+                            if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
+                            {
+                                data.users[ind].sender.last_cind = 0;
+                                continue;
+                            }
                             string response = api.Send_user_msg(
                                 data.users[ind].user_token,
                                 data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id,
                                 data.users[ind].sender.message
                                 );
-                            data.users[ind].sender.last_cind++;
                             Console.WriteLine(DateTime.Now.ToLongTimeString() + " - sent in " + data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind].peer_id + " from " + data.users[ind].vkid);
                             if (response.Contains("error"))
                             {
@@ -709,6 +714,7 @@ namespace ChatSender2
                                     );
                                 data.users[ind].sender.tarif = 0;
                             }
+                            data.users[ind].sender.last_cind++;
                             if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
                                 data.users[ind].sender.last_cind = 0;
                             data.users[ind].sender.last_time = DateTime.Now;
@@ -719,7 +725,7 @@ namespace ChatSender2
                 }
 
                 //qiwi
-                if (counter_main % 30 == 0)
+                /*if (counter_main % 30 == 0)
                 {
                     try
                     {
@@ -821,7 +827,7 @@ namespace ChatSender2
                         Console.WriteLine("Qiwi error: " + qiwi_ex.ToString());
                     }
                 }
-
+                */
                 //adder
                 for (int ind = 0; ind < data.users.Count; ind++)
                 {
@@ -843,8 +849,12 @@ namespace ChatSender2
                             int myind = data.FindUser(my_vk_id);
                             if (myind != -1)
                             {
-                                api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
-                                Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
+                                try
+                                {
+                                    api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
+                                    Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
+                                }
+                                catch { Console.WriteLine("Error adding user "  + data.users[ind].vkid); }
                                 data.users[ind].adder.last_time = DateTime.Now;
                                 data.users[ind].adder.last_cind++;
                                 if (data.users[ind].adder.last_cind % 20 == 0)
