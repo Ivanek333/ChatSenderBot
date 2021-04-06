@@ -14,15 +14,23 @@ namespace ChatSender2
     {
         public static void Main()
         {
-            string my_vk_id = @"320317706";
-            string token = @"941e434cf701f65a10ddca02e305ee0c38b30034ec2c7d9f8260615795d4f040399a31a083c54b5d675b4";
-            string path = @"C:/BotsFiles/ChatSender2/";
-            string group_id = @"203082034";
+            string path = ""; //@"C:/BotsFiles/ChatSender2/";
+            Tokens tokens = new Tokens();
+            try
+            {
+                JsonConvert.PopulateObject(File.ReadAllText(path + "Tokens.json"), tokens);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Read tokens error " + e.Message);
+                File.WriteAllText(path + "Tokens.json", JsonConvert.SerializeObject(tokens));
+                return;
+            }
             Random rand = new Random();
             MyApi api = new MyApi
             {
-                token = token,
-                group_id = group_id,
+                token = tokens.group_token,
+                group_id = tokens.group_id,
                 path = path
             };
             Database data = new Database();
@@ -165,7 +173,7 @@ namespace ChatSender2
                             string peer_id = item["object"]["message"]["peer_id"].ToString(); //id назначения
                             string from_id = item["object"]["message"]["from_id"].ToString(); //id отправителя
                             string message_id = item["object"]["message"]["id"].ToString();   //id сообщения											  //string message_id = item["object"]["apisage"]["id"].ToString();   //id сообщения
-                            api.Log($"@id{from_id} in vk.com/gim{group_id}?sel={peer_id} : '{msg}' , good_msg: '{good_msg}'");
+                            api.Log($"@id{from_id} in vk.com/gim{tokens.group_id}?sel={peer_id} : '{msg}' , good_msg: '{good_msg}'");
 
                             bool new_user = false;
                             int ind = data.FindUser(from_id);
@@ -566,9 +574,11 @@ namespace ChatSender2
                                                 File.Create($"{path}Users_data/{data.users[add_ind].vkid}.json").Close();
                                                 api.Send_msg(peer_id, $"У вас появился новый реферал - @id{from_id}");
                                             }
+                                            data.users[add_ind].adder.wait = false;
+                                            data.users[add_ind].adder.last_cind = 0;
                                             data.users[add_ind].adder.is_on = true;
                                             File.WriteAllText($"{path}Users_data/{data.users[add_ind].vkid}.json", JsonConvert.SerializeObject(data.users[add_ind]));
-                                            api.Send_msg(my_vk_id, $"Позитивный чел @id{from_id} начал добавять в беседы @id{add_user_id}");
+                                            api.Send_msg(tokens.my_id, $"Позитивный чел @id{from_id} начал добавять в беседы @id{add_user_id}");
                                             data.users[ind].adminInfo.balance -= 25;
                                             api.Send_msg(peer_id, "Добавление начато, вы получите сообщение, когда оно будет закончено.\nС вашего баланса снято 25₽");
                                         }
@@ -640,6 +650,37 @@ namespace ChatSender2
                                     api.Send_msg(peer_id, "Не удалось получить число, попробуйте ещё раз");
                                 }
                             }
+                            else if (cur_mid == 48)
+                            {
+                                string check_user_id = good_msg;
+                                if (check_user_id.Contains("vk.com"))
+                                {
+                                    check_user_id = check_user_id.Substring(check_user_id.IndexOf("vk.com") + 7, check_user_id.Length - check_user_id.IndexOf("vk.com") - 7);
+                                    Console.WriteLine(check_user_id);
+                                    Thread.Sleep(10);
+                                    check_user_id = api.GetUserId(check_user_id);
+                                    Console.WriteLine(add_user_id);
+                                    if (check_user_id != "error")
+                                    {
+                                        if (check_user_id > "2000000")
+                                        {
+                                            api.Send_msg(peer_id, "Это группа, @group" + check_user_id);
+                                        }
+                                        else
+                                        {
+                                            api.Send_msg(peer_id, "Это человек, @id" + check_user_id);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        api.Send_msg(peer_id, "Указанный пользователь не обнаружен");
+                                    }
+                                }
+                                else
+                                {
+                                    api.Send_msg(peer_id, "Неверный формат ссылки, попробуйте ещё раз");
+                                }
+                            }
                             else
                             {
                                 api.Send_split_msg_keyboard(peer_id, mdata.messages[cur_mind], '#', "Команда не распознана");
@@ -677,7 +718,7 @@ namespace ChatSender2
                             (data.users[ind].sender.last_cind >= 0)
                         )
                         {
-                            Console.WriteLine("here");
+                            //Console.WriteLine("here");
 
                             if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
                             {
@@ -846,7 +887,7 @@ namespace ChatSender2
                             )
                         {
                             if (data.users[ind].adder.wait) data.users[ind].adder.wait = false;
-                            int myind = data.FindUser(my_vk_id);
+                            int myind = data.FindUser(tokens.my_id);
                             if (myind != -1)
                             {
                                 try
@@ -864,6 +905,7 @@ namespace ChatSender2
                                 if (data.users[ind].adder.last_cind >= data.users[myind].sender.sender_chats.Count)
                                 {
                                     data.users[ind].adder.is_on = false;
+                                    data.users[ind].adder.last_cind = 0;
                                     if (data.users[ind].got_ref)
                                     {
                                         api.Send_msg(data.users[ind].ref_id, $"Добавление @id{data.users[ind].vkid} в беседы успешно закончено");
@@ -871,6 +913,10 @@ namespace ChatSender2
                                     api.Send_msg(data.users[ind].vkid, "Добавление в беседы успешно закончено");
                                 }
                                 File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
+                            }
+                            else
+                            {
+                                api.Log("Adder: can't find me");
                             }
                         }
                     }

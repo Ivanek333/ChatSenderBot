@@ -76,16 +76,14 @@ namespace ChatSender2
         {
             string gid = "";
             string json = webclient.DownloadString($"https://api.vk.com/method/utils.resolveScreenName?access_token={token}&screen_name={screen_name}&v=5.126");
-            if (json.ToLower().Contains("user"))
+            try
             {
                 gid = JObject.Parse(json)["response"]["object_id"].ToString();
-            }
-            else if (json.ToLower().Contains("group"))
-            {
-                return "group";
-            }
+            } catch {  }
+            if (!(string.IsNullOrWhiteSpace(gid) || string.IsNullOrEmpty(gid))
             else
             {
+                gid = "error";
                 Console.WriteLine("Ошибка получения id:\n" + json);
             }
             return gid;
@@ -225,11 +223,10 @@ namespace ChatSender2
             }
             return ret;
         }
-        public string QiwiGet()
+        public string QiwiGet(string phone, string token)
         {
             string url = "https://edge.qiwi.com";
-            url += "/payment-history/v2/persons/375333765118/payments?rows=10&operation=IN";
-            string token = "b404e94a7ec6c1b46bbb2c0e90ebcd28";
+            url += $"/payment-history/v2/persons/{phone}/payments?rows=10&operation=IN";
             WebRequest request = WebRequest.Create(url);
             request.Method = "Get";
             request.Headers = new WebHeaderCollection();

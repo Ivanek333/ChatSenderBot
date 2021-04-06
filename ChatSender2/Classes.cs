@@ -112,6 +112,23 @@ namespace ChatSender2
 			return -1;
 		}
 	}
+	
+	public class Tokens
+	{
+	    public string group_id;
+	    public string group_token;
+	    public string my_id;
+	    public string qiwi_token;
+	    public string qiwi_phone;
+	    public Tokens ()
+	    {
+	        group_id = "";
+	        group_token = "";
+	        my_id = "";
+	        qiwi_token = "";
+	        qiwi_phone = "";
+	    }
+	}
 	public class Database
 	{
 		public UInt64 last_txnId;
