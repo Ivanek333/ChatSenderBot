@@ -14,7 +14,7 @@ namespace ChatSender2
     {
         public static void Main()
         {
-            string path = ""; //@"C:/BotsFiles/ChatSender2/";
+            string path = @"C:/BotsFiles/ChatSender2/";
             Tokens tokens = new Tokens();
             try
             {
@@ -659,10 +659,10 @@ namespace ChatSender2
                                     Console.WriteLine(check_user_id);
                                     Thread.Sleep(10);
                                     check_user_id = api.GetUserId(check_user_id);
-                                    Console.WriteLine(add_user_id);
+                                    Console.WriteLine(check_user_id);
                                     if (check_user_id != "error")
                                     {
-                                        if (check_user_id > "2000000")
+                                        if (int.Parse(check_user_id) > 2000000)
                                         {
                                             api.Send_msg(peer_id, "Это группа, @group" + check_user_id);
                                         }

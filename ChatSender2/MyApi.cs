@@ -80,8 +80,7 @@ namespace ChatSender2
             {
                 gid = JObject.Parse(json)["response"]["object_id"].ToString();
             } catch {  }
-            if (!(string.IsNullOrWhiteSpace(gid) || string.IsNullOrEmpty(gid))
-            else
+            if (string.IsNullOrWhiteSpace(gid) || string.IsNullOrEmpty(gid))
             {
                 gid = "error";
                 Console.WriteLine("Ошибка получения id:\n" + json);
