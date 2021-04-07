@@ -550,7 +550,7 @@ namespace ChatSender2
                                     Console.WriteLine(add_user_id);
                                     if (add_user_id != "")
                                     {
-                                        if (add_user_id == "group")
+                                        if (add_user_id.StartsWith("g"))
                                         {
                                             api.Send_msg(peer_id, "Это не человек, а группа!\nЗа приглашения групп банят в беседах, поэтому с ними не работаем!");
                                         }
@@ -605,7 +605,7 @@ namespace ChatSender2
                                     Console.WriteLine(add_user_id);
                                     if (add_user_id != "")
                                     {
-                                        if (add_user_id == "group")
+                                        if (add_user_id.StartsWith("g"))
                                         {
                                             api.Send_msg(peer_id, "Это не человек, а группа, с ними не работаем!");
                                         }
@@ -662,9 +662,9 @@ namespace ChatSender2
                                     Console.WriteLine(check_user_id);
                                     if (check_user_id != "error")
                                     {
-                                        if (int.Parse(check_user_id) > 200000000)
+                                        if (check_user_id.StartsWith("g"))
                                         {
-                                            api.Send_msg(peer_id, "Это группа, @public" + check_user_id);
+                                            api.Send_msg(peer_id, "Это группа, @public" + check_user_id.Remove(0, 1));
                                         }
                                         else
                                         {
@@ -895,7 +895,7 @@ namespace ChatSender2
                                     api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
                                     Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
                                 }
-                                catch { Console.WriteLine("Error adding user "  + data.users[ind].vkid); }
+                                catch { Console.WriteLine("Error adding user " + data.users[ind].vkid); }
                                 data.users[ind].adder.last_time = DateTime.Now;
                                 data.users[ind].adder.last_cind++;
                                 if (data.users[ind].adder.last_cind % 20 == 0)

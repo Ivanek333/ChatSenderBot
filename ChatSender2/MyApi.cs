@@ -79,6 +79,8 @@ namespace ChatSender2
             try
             {
                 gid = JObject.Parse(json)["response"]["object_id"].ToString();
+                if (JObject.Parse(json)["response"]["type"].ToString() == "group")
+                    gid = "g" + gid;
             } catch {  }
             if (string.IsNullOrWhiteSpace(gid) || string.IsNullOrEmpty(gid))
             {
