@@ -284,21 +284,14 @@ namespace ChatSender2
             List<string> ret = new List<string>();
             try
             {
-                string response = webclient.DownloadString($"https://api.vk.com/method/friends.getRequest?access_token={token}&count=100&v=5.126");
-                if(response.Contains("error"))
-
-Log(response);
-                var arr = JObject.Parse(response)["response"]["items"].ToList();
-                 for(int i = 0; i < arr.Count; i++)
-
+                string response = webclient.DownloadString($"https://api.vk.com/method/friends.getRequests?access_token={token}&count=100&v=5.126");
+                if (response.Contains("error"))
+                    Log(response);
+                JToken[] arr = JObject.Parse(response)["response"]["items"].ToArray();
+                for (int i = 0; i < arr.Count(); i++)
                 {
-
-                    ret.Add(arr[i]["user_id"].ToString());
-
+                    ret.Add(arr[i].ToString());
                 }
-
- 
-
             }
             catch (Exception e)
             {
