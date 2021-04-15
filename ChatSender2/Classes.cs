@@ -118,6 +118,7 @@ namespace ChatSender2
 	    public string group_id;
 	    public string group_token;
 	    public string my_id;
+	    public string adder_id;
 	    public string qiwi_token;
 	    public string qiwi_phone;
 	    public Tokens ()
@@ -125,6 +126,7 @@ namespace ChatSender2
 	        group_id = "";
 	        group_token = "";
 	        my_id = "";
+	        adder_id = "";
 	        qiwi_token = "";
 	        qiwi_phone = "";
 	    }
@@ -132,8 +134,8 @@ namespace ChatSender2
 	public class Database
 	{
 		public UInt64 last_txnId;
-		public List<User> users;
 		public Dictionary<int, string> users_ids;
+		public List<User> users;
 		
 		public int FindUser(string vkid)
 		{

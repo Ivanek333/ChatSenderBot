@@ -37,14 +37,14 @@ namespace ChatSender2
         public string token, group_id, path;
         public void Log(string message)
         {
-            Console.WriteLine($"{DateTime.Now.ToString()} {message}"); //in console
+            Console.WriteLine($"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToLongTimeString()} >> {message}"); //in console
             try
             {
-                File.WriteAllText($"{path}Log.txt", $"{File.ReadAllText(path + "Log.txt")} {DateTime.Now.ToString()} {message} \n"); //Log
+                File.WriteAllText($"{path}Log.txt", $"{File.ReadAllText(path + "Log.txt")} {DateTime.Now.ToShortDateString()} {DateTime.Now.ToLongTimeString()} >> {message} \n"); //Log
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{DateTime.Now.ToString()} Log error: {e.ToString()}");
+                Console.WriteLine($"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToLongTimeString()} >> Log error: {e.Message}");
             }
         }
         public JObject GetLongPoll()
@@ -52,13 +52,12 @@ namespace ChatSender2
             JObject longpoll = new JObject();
             try
             {
-                Console.WriteLine("Attempt \n");
                 longpoll = JObject.Parse(webclient.DownloadString($"https://api.vk.com/method/groups.getLongPollServer?access_token={token}&group_id={group_id}&v=5.126"));
-                Console.WriteLine("Ended : \n " + longpoll.ToString() + " \n");
+                Log(longpoll.ToString());
             }
             catch (Exception e)
             {
-                Log("Error get longpoll: " + e.ToString());
+                Log("Error get longpoll: " + e.Message);
             }
             return longpoll;
         }
@@ -81,11 +80,15 @@ namespace ChatSender2
                 gid = JObject.Parse(json)["response"]["object_id"].ToString();
                 if (JObject.Parse(json)["response"]["type"].ToString() == "group")
                     gid = "g" + gid;
-            } catch {  }
+            }
+            catch (Exception e)
+            {
+                Log("(GetUserId) Error parsing id: " + e.Message);
+            }
             if (string.IsNullOrWhiteSpace(gid) || string.IsNullOrEmpty(gid))
             {
                 gid = "error";
-                Console.WriteLine("Ошибка получения id:\n" + json);
+                Log("(GetUserId) Error getting id:\n" + json);
             }
             return gid;
         }
@@ -167,7 +170,6 @@ namespace ChatSender2
                 string j = "";
                 WebClient client = new WebClient { Encoding = Encoding.UTF8 };
                 j = client.DownloadString(string.Format("https://api.vk.com/method/messages.getConversations?v=5.126&access_token={0}&count=1&filter=all", user_token));
-                //Console.WriteLine(j);
                 List<JToken> item_list = new List<JToken>();
                 int item_count = -1, offset = 0;
                 item_count = int.Parse(JObject.Parse(j)["response"]["count"].ToString());
@@ -177,17 +179,14 @@ namespace ChatSender2
                     item_list = JObject.Parse(j)["response"]["items"].ToList();
                     foreach (JToken item in item_list)
                     {
-                        //Console.WriteLine("\n\n1. " + item.ToString());
                         if (item["conversation"]["peer"]["type"].ToString() == "chat")
                         {
-                            //Console.WriteLine("\n\n2. " + item["conversation"].ToString());
                             chats.Add(new VK.Chat
                             {
                                 peer_id = item["conversation"]["peer"]["local_id"].ToString(),
                                 name = item["conversation"]["chat_settings"]["title"].ToString(),
                                 mark = 0
                             });
-                            //Console.WriteLine(chats[chats.Count - 1].ToString());
                         }
                     }
                     offset += 200;
@@ -196,7 +195,7 @@ namespace ChatSender2
             }
             catch (Exception e)
             {
-                Console.WriteLine("get chats error: " + e.ToString());
+                Log("(GetChats) Error: " + e.Message);
             }
             chats.Sort();
             return chats;
@@ -219,7 +218,7 @@ namespace ChatSender2
                         break;
                 }
                 ret += " " + chats[i].ToString() + "\n";
-                if ((i + 1) % 15 == 0)
+                if ((i + 1) % 12 == 0)
                     ret += "#";
             }
             return ret;
@@ -251,12 +250,52 @@ namespace ChatSender2
                 lines = lines.Remove(lines.IndexOf('\n'), 1);
             }
             response.Close();
-            Console.WriteLine("Qiwi request complited");
+            Log("Qiwi request complited");
             return lines;
         }
         public string InviteUser(string chat_id, string user_id, string token)
         {
-            return webclient.DownloadString($"https://api.vk.com/method/messages.addChatUser?access_token={token}&chat_id={chat_id}&user_id={user_id}&visible_messages_count=250&v=5.126");
+            string ret = "";
+            try
+            {
+                ret = webclient.DownloadString($"https://api.vk.com/method/messages.addChatUser?access_token={token}&chat_id={chat_id}&user_id={user_id}&visible_messages_count=250&v=5.126");
+            }
+            catch (Exception e)
+            {
+                Log("(InviteUser) Error: " + e.Message);
+            }
+            return ret;
+        }
+        public string AddFriend(string user_id, string token)
+        {
+            string ret = "";
+            try
+            {
+                ret = webclient.DownloadString($"https://api.vk.com/method/friends.add?access_token={token}&user_id={user_id}&v=5.126");
+            }
+            catch (Exception e)
+            {
+                Log("(AddFriend) Error: " + e.Message);
+            }
+            return ret;
+        }
+        public List<string> RequestFriends(string token)
+        {
+            List<string> ret = new List<string>();
+            try
+            {
+                string response = webclient.DownloadString($"https://api.vk.com/method/friends.getRequest?access_token={token}&count=100&v=5.126");
+                var arr = JObject.Parse(response)["response"]["items"].ToList();
+                foreach (var item in arr)
+                {
+                    ret.Add(item["user_id"].ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                Log("(RequestFriends) Error: " + e.Message);
+            }
+            return ret;
         }
     }
 }

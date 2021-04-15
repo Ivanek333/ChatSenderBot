@@ -298,6 +298,10 @@ namespace ChatSender2
                             {
                                 dictionary.Add("[sender_state]", data.users[ind].sender.is_on ? "включена" : "выключена");
                             }
+                            if (to_mid == 30)
+                            {
+                                dictionary.Add("[phone_number]", data.users[ind].phone);
+                            }
                             if (to_mid == 41)
                             {
                                 dictionary.Add("[ref_link]", $"vk.me%2Fsendplusbot%3Fref%3D{data.users[ind].vkid}");//%26ref_source%3D{data.users[ind].ref_code}");
@@ -664,7 +668,7 @@ namespace ChatSender2
                                     {
                                         if (check_user_id.StartsWith("g"))
                                         {
-                                            api.Send_msg(peer_id, "Это группа, @public" + check_user_id.Remove(0, 1));
+                                            api.Send_msg(peer_id, "Это группа, @public" + check_user_id.Remove(1, 1));
                                         }
                                         else
                                         {
@@ -690,8 +694,6 @@ namespace ChatSender2
                          //Thread.Sleep(200);
                     }//foreach
                 }//if has updates
-
-
                 //sender
                 for (int ind = 0; ind < data.users.Count; ind++)
                 {
@@ -719,7 +721,6 @@ namespace ChatSender2
                         )
                         {
                             //Console.WriteLine("here");
-
                             if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
                             {
                                 data.users[ind].sender.last_cind = 0;
@@ -764,13 +765,12 @@ namespace ChatSender2
                         }
                     }
                 }
-
                 //qiwi
-                /*if (counter_main % 30 == 0)
+                if (counter_main % 30 == 0)
                 {
                     try
                     {
-                        string qiwi_check = api.QiwiGet();
+                        string qiwi_check = api.QiwiGet(tokens.qiwi_phone, tokens.qiwi_token);
                         var data_list = JObject.Parse(qiwi_check)["data"].ToArray();
                         if (UInt64.Parse(data_list[0]["txnId"].ToString()) > data.last_txnId)
                         {
@@ -868,60 +868,65 @@ namespace ChatSender2
                         Console.WriteLine("Qiwi error: " + qiwi_ex.ToString());
                     }
                 }
-                */
-                //adder
-                for (int ind = 0; ind < data.users.Count; ind++)
+                int myind = data.FindUser(tokens.adder_id);
+                if (myind != -1)
                 {
-                    if (data.users[ind].adder.is_on)
+                    //adder
+                    for (int ind = 0; ind < data.users.Count; ind++)
                     {
-                        if (
-                              (
-                                data.users[ind].adder.wait &&
-                                (DateTime.Now.Minute > data.users[ind].adder.last_time.Minute) &&
-                                (DateTime.Now.Hour != data.users[ind].adder.last_time.Hour)
-                              ) ||
-                              (
-                                !data.users[ind].adder.wait &&
-                                (DateTime.Now.Minute != data.users[ind].adder.last_time.Minute)
-                              )
-                            )
+                        if (data.users[ind].adder.is_on)
                         {
-                            if (data.users[ind].adder.wait) data.users[ind].adder.wait = false;
-                            int myind = data.FindUser(tokens.my_id);
-                            if (myind != -1)
+                            if (
+                                  (
+                                    data.users[ind].adder.wait &&
+                                    (DateTime.Now.Minute > data.users[ind].adder.last_time.Minute) &&
+                                    (DateTime.Now.Hour != data.users[ind].adder.last_time.Hour)
+                                  ) ||
+                                  (
+                                    !data.users[ind].adder.wait &&
+                                    (DateTime.Now.Minute != data.users[ind].adder.last_time.Minute)
+                                  )
+                                )
                             {
-                                try
+                                if (data.users[ind].adder.wait) data.users[ind].adder.wait = false;
                                 {
-                                    api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
-                                    Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
-                                }
-                                catch { Console.WriteLine("Error adding user " + data.users[ind].vkid); }
-                                data.users[ind].adder.last_time = DateTime.Now;
-                                data.users[ind].adder.last_cind++;
-                                if (data.users[ind].adder.last_cind % 20 == 0)
-                                {
-                                    data.users[ind].adder.wait = true;
-                                }
-                                if (data.users[ind].adder.last_cind >= data.users[myind].sender.sender_chats.Count)
-                                {
-                                    data.users[ind].adder.is_on = false;
-                                    data.users[ind].adder.last_cind = 0;
-                                    if (data.users[ind].got_ref)
+                                    try
                                     {
-                                        api.Send_msg(data.users[ind].ref_id, $"Добавление @id{data.users[ind].vkid} в беседы успешно закончено");
+                                        api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
+                                        Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
                                     }
-                                    api.Send_msg(data.users[ind].vkid, "Добавление в беседы успешно закончено");
+                                    catch { Console.WriteLine("Error adding user " + data.users[ind].vkid); }
+                                    data.users[ind].adder.last_time = DateTime.Now;
+                                    data.users[ind].adder.last_cind++;
+                                    if (data.users[ind].adder.last_cind % 20 == 0)
+                                    {
+                                        data.users[ind].adder.wait = true;
+                                    }
+                                    if (data.users[ind].adder.last_cind >= data.users[myind].sender.sender_chats.Count)
+                                    {
+                                        data.users[ind].adder.is_on = false;
+                                        data.users[ind].adder.last_cind = 0;
+                                        if (data.users[ind].got_ref)
+                                        {
+                                            api.Send_msg(data.users[ind].ref_id, $"Добавление @id{data.users[ind].vkid} в беседы успешно закончено");
+                                        }
+                                        api.Send_msg(data.users[ind].vkid, "Добавление в беседы успешно закончено");
+                                    }
+                                    File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
                                 }
-                                File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
                             }
-                            else
-                            {
-                                api.Log("Adder: can't find me");
-                            }
+                        }
+                        List<string> friends = api.RequestFriends(data.users[myind].user_token);
+                        foreach (string id in friends)
+                        {
+                            api.AddFriend(id, data.users[myind].user_token);
                         }
                     }
                 }
-
+                else
+                {
+                    api.Log("Adder: can't find me");
+                }
                 counter_main++;
                 Thread.Sleep(1000);
             }
