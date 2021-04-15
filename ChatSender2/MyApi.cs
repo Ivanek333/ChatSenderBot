@@ -289,10 +289,16 @@ namespace ChatSender2
 
 Log(response);
                 var arr = JObject.Parse(response)["response"]["items"].ToList();
-                foreach (var item in arr)
+                 for(int i = 0; i < arr.Count; i++)
+
                 {
-                    ret.Add(item["user_id"].ToString());
+
+                    ret.Add(arr[i]["user_id"].ToString());
+
                 }
+
+ 
+
             }
             catch (Exception e)
             {
