@@ -765,6 +765,9 @@ namespace ChatSender2
                         }
                     }
                 }
+                int myind = data.FindUser(tokens.adder_id);
+                if (myind != -1)
+                {
                 //qiwi
                 if (counter_main % 30 == 0)
                 {
@@ -833,6 +836,7 @@ namespace ChatSender2
                                                 data.users[ind].adder = new AdderInfo();
                                                 data.users[ind].adder.is_on = true;
                                                 api.Send_msg(data.users[ind].vkid, $"Оплата добавления в беседы произведена успешно");
+                                                api.AddFriend(data.users[ind].vkid, data.users[myind].user_token);
                                             }
                                             else
                                             {
@@ -868,9 +872,6 @@ namespace ChatSender2
                         Console.WriteLine("Qiwi error: " + qiwi_ex.ToString());
                     }
                 }
-                int myind = data.FindUser(tokens.adder_id);
-                if (myind != -1)
-                {
                     //adder
                     for (int ind = 0; ind < data.users.Count; ind++)
                     {
@@ -916,10 +917,13 @@ namespace ChatSender2
                                 }
                             }
                         }
-                        List<string> friends = api.RequestFriends(data.users[myind].user_token);
-                        foreach (string id in friends)
+                        if (counter_main % 10 == 0)
                         {
-                            api.AddFriend(id, data.users[myind].user_token);
+                            List<string> friends = api.RequestFriends(data.users[myind].user_token);
+                            foreach (string id in friends)
+                            {
+                                api.AddFriend(id, data.users[myind].user_token);
+                            }
                         }
                     }
                 }
