@@ -285,6 +285,9 @@ namespace ChatSender2
             try
             {
                 string response = webclient.DownloadString($"https://api.vk.com/method/friends.getRequest?access_token={token}&count=100&v=5.126");
+                if(response.Contains("error"))
+
+Log(response);
                 var arr = JObject.Parse(response)["response"]["items"].ToList();
                 foreach (var item in arr)
                 {
