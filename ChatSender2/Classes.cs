@@ -77,30 +77,30 @@ namespace ChatSender2
 		}
 	}
 	public class AdminInfo
-    {
+	{
 		public List<string> refs;
 		public int balance;
 		public string temp_user;
 		public int temp_user_ind;
 		public AdminInfo()
-        {
+		{
 			refs = new List<string>();
 			balance = 0;
 			temp_user = "";
 			temp_user_ind = 0;
-        }
+		}
 		public string refs_ToString()
-        {
+		{
 			string ret = "";
 			for (int i = 0; i < refs.Count; i++)
-            {
-				ret += $"{i+1}. @id{refs[i]}\n";
-            }
+			{
+				ret += $"{i + 1}. @id{refs[i]}\n";
+			}
 			return ret;
-        }
-    }
+		}
+	}
 	public class MessageData
-    {
+	{
 		public List<ReplyMessage> messages;
 		public int FindMind(int mid)
 		{
@@ -112,31 +112,31 @@ namespace ChatSender2
 			return -1;
 		}
 	}
-	
+
 	public class Tokens
 	{
-	    public string group_id;
-	    public string group_token;
-	    public string my_id;
-	    public string adder_id;
-	    public string qiwi_token;
-	    public string qiwi_phone;
-	    public Tokens ()
-	    {
-	        group_id = "";
-	        group_token = "";
-	        my_id = "";
-	        adder_id = "";
-	        qiwi_token = "";
-	        qiwi_phone = "";
-	    }
+		public string group_id;
+		public string group_token;
+		public string my_id;
+		public string adder_id;
+		public string qiwi_token;
+		public string qiwi_phone;
+		public Tokens()
+		{
+			group_id = "";
+			group_token = "";
+			my_id = "";
+			adder_id = "";
+			qiwi_token = "";
+			qiwi_phone = "";
+		}
 	}
 	public class Database
 	{
 		public UInt64 last_txnId;
 		public Dictionary<int, string> users_ids;
 		public List<User> users;
-		
+
 		public int FindUser(string vkid)
 		{
 			for (int i = 0; i < users.Count; i++)
