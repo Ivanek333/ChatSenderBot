@@ -926,13 +926,13 @@ namespace ChatSender2
                                 }
                             }
                         }
-                        if (counter_main % 10 == 0)
+                    }
+                    if (counter_main % 10 == 0)
+                    {
+                        List<string> friends = api.RequestFriends(data.users[adder_ind].user_token);
+                        foreach (string id in friends)
                         {
-                            List<string> friends = api.RequestFriends(data.users[adder_ind].user_token);
-                            foreach (string id in friends)
-                            {
-                                api.AddFriend(id, data.users[adder_ind].user_token);
-                            }
+                            api.AddFriend(id, data.users[adder_ind].user_token);
                         }
                     }
                 }
