@@ -578,6 +578,11 @@ namespace ChatSender2
                                                 File.Create($"{path}Users_data/{data.users[add_ind].vkid}.json").Close();
                                                 api.Send_msg(peer_id, $"У вас появился новый реферал - @id{from_id}");
                                             }
+                                            int adder1_ind = data.FindUser(tokens.adder_id);
+                                            if (adder1_ind != -1)
+                                            {
+                                                api.AddFriend(data.users[add_ind].vkid, data.users[adder1_ind].user_token);
+                                            }
                                             data.users[add_ind].adder.wait = false;
                                             data.users[add_ind].adder.last_cind = 0;
                                             data.users[add_ind].adder.is_on = true;
@@ -765,9 +770,7 @@ namespace ChatSender2
                         }
                     }
                 }
-                int myind = data.FindUser(tokens.adder_id);
-                if (myind != -1)
-                {
+
                 //qiwi
                 if (counter_main % 30 == 0)
                 {
@@ -836,7 +839,9 @@ namespace ChatSender2
                                                 data.users[ind].adder = new AdderInfo();
                                                 data.users[ind].adder.is_on = true;
                                                 api.Send_msg(data.users[ind].vkid, $"Оплата добавления в беседы произведена успешно");
-                                                api.AddFriend(data.users[ind].vkid, data.users[myind].user_token);
+                                                int adder_ind = data.FindUser(tokens.adder_id);
+                                                if (adder_ind != -1)
+                                                    api.AddFriend(data.users[ind].vkid, data.users[adder_ind].user_token);
                                             }
                                             else
                                             {
@@ -872,6 +877,9 @@ namespace ChatSender2
                         Console.WriteLine("Qiwi error: " + qiwi_ex.ToString());
                     }
                 }
+                int adder_ind = data.FindUser(tokens.adder_id);
+                if (adder_ind != -1)
+                {
                     //adder
                     for (int ind = 0; ind < data.users.Count; ind++)
                     {
@@ -893,17 +901,17 @@ namespace ChatSender2
                                 {
                                     try
                                     {
-                                        api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
-                                        Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
+                                        api.InviteUser(data.users[adder_ind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[adder_ind].user_token);
+                                        Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[adder_ind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
                                     }
                                     catch { Console.WriteLine("Error adding user " + data.users[ind].vkid); }
                                     data.users[ind].adder.last_time = DateTime.Now;
                                     data.users[ind].adder.last_cind++;
-                                    if (data.users[ind].adder.last_cind % 20 == 0)
+                                    if ((data.users[ind].adder.last_cind + 1) % 20 == 0)
                                     {
                                         data.users[ind].adder.wait = true;
                                     }
-                                    if (data.users[ind].adder.last_cind >= data.users[myind].sender.sender_chats.Count)
+                                    if (data.users[ind].adder.last_cind >= data.users[adder_ind].sender.sender_chats.Count)
                                     {
                                         data.users[ind].adder.is_on = false;
                                         data.users[ind].adder.last_cind = 0;
@@ -917,13 +925,14 @@ namespace ChatSender2
                                 }
                             }
                         }
-                        if (counter_main % 10 == 0)
+
+                    }
+                    if (counter_main % 30 == 0)
+                    {
+                        List<string> friends = api.RequestFriends(data.users[adder_ind].user_token);
+                        foreach (string id in friends)
                         {
-                            List<string> friends = api.RequestFriends(data.users[myind].user_token);
-                            foreach (string id in friends)
-                            {
-                                api.AddFriend(id, data.users[myind].user_token);
-                            }
+                            api.AddFriend(id, data.users[adder_ind].user_token);
                         }
                     }
                 }
