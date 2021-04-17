@@ -578,11 +578,6 @@ namespace ChatSender2
                                                 File.Create($"{path}Users_data/{data.users[add_ind].vkid}.json").Close();
                                                 api.Send_msg(peer_id, $"У вас появился новый реферал - @id{from_id}");
                                             }
-                                            int adder1_ind = data.FindUser(tokens.adder_id);
-                                            if (adder1_ind != -1)
-                                            {
-                                                api.AddFriend(data.users[add_ind].vkid, data.users[adder1_ind].user_token);
-                                            }
                                             data.users[add_ind].adder.wait = false;
                                             data.users[add_ind].adder.last_cind = 0;
                                             data.users[add_ind].adder.is_on = true;
@@ -770,137 +765,113 @@ namespace ChatSender2
                         }
                     }
                 }
-<<<<<<< HEAD
-
+                int myind = data.FindUser(tokens.adder_id);
+                if (myind != -1)
+                {
                 //qiwi
                 if (counter_main % 30 == 0)
                 {
                     try
-=======
-                int myind = data.FindUser(tokens.adder_id);
-                if (myind != -1)
-                {
-                    //qiwi
-                    if (counter_main % 30 == 0)
->>>>>>> 3da492f89e6beca16c1b2ff16904da2da42d7912
                     {
-                        try
+                        string qiwi_check = api.QiwiGet(tokens.qiwi_phone, tokens.qiwi_token);
+                        var data_list = JObject.Parse(qiwi_check)["data"].ToArray();
+                        if (UInt64.Parse(data_list[0]["txnId"].ToString()) > data.last_txnId)
                         {
-                            string qiwi_check = api.QiwiGet(tokens.qiwi_phone, tokens.qiwi_token);
-                            var data_list = JObject.Parse(qiwi_check)["data"].ToArray();
-                            if (UInt64.Parse(data_list[0]["txnId"].ToString()) > data.last_txnId)
+                            for (int i = data_list.Count() - 1; i >= 0; i--)
                             {
-                                for (int i = data_list.Count() - 1; i >= 0; i--)
+                                Console.WriteLine(i.ToString());
+                                if (UInt64.Parse(data_list[i]["txnId"].ToString()) > data.last_txnId)
                                 {
-                                    Console.WriteLine(i.ToString());
-                                    if (UInt64.Parse(data_list[i]["txnId"].ToString()) > data.last_txnId)
+                                    string credits = data_list[i]["account"].ToString();
+                                    int cost = (int)MathF.Round(float.Parse(data_list[i]["sum"]["amount"].ToString()) / 5f) * 5;
+                                    int ind = -1;
+                                    int new_tarif = 0;
+                                    try
                                     {
-                                        string credits = data_list[i]["account"].ToString();
-                                        int cost = (int)MathF.Round(float.Parse(data_list[i]["sum"]["amount"].ToString()) / 5f) * 5;
-                                        int ind = -1;
-                                        int new_tarif = 0;
-                                        try
+                                        for (int l = 0; l < data.users.Count; l++)
                                         {
-                                            for (int l = 0; l < data.users.Count; l++)
+                                            if (data.users[l].phone == credits)
                                             {
-                                                if (data.users[l].phone == credits)
-                                                {
-                                                    ind = l;
-                                                    break;
-                                                }
+                                                ind = l;
+                                                break;
                                             }
-                                            if (ind == -1)
+                                        }
+                                        if (ind == -1)
+                                        {
+                                            throw new Exception("User not found in database");
+                                        }
+                                        else
+                                        {
+                                            bool inviting = false;
+                                            switch (cost)
                                             {
-<<<<<<< HEAD
+                                                case 60:
+                                                    new_tarif = 5000;
+                                                    break;
+                                                case 100:
+                                                    new_tarif = 12000;
+                                                    break;
+                                                case 150:
+                                                    new_tarif = 20000;
+                                                    break;
+                                                case 200:
+                                                    new_tarif = 30000;
+                                                    break;
+                                                case 300:
+                                                    new_tarif = 50000;
+                                                    break;
+                                                case 50:
+                                                    inviting = true;
+                                                    break;
+                                            }
+                                            if (new_tarif != 0)
+                                            {
+                                                data.users[ind].sender.tarif -= data.users[ind].sender.sended_messages;
+                                                data.users[ind].sender.tarif += new_tarif;
+                                                data.users[ind].sender.sended_messages = 0;
+                                                api.Send_msg(data.users[ind].vkid, $"Оплата успешно проведена.\nВаш новый тариф - {data.users[ind].sender.tarif}");
+                                            }
+                                            else if (inviting)
+                                            {
                                                 data.users[ind].adder = new AdderInfo();
                                                 data.users[ind].adder.is_on = true;
                                                 api.Send_msg(data.users[ind].vkid, $"Оплата добавления в беседы произведена успешно");
-                                                int adder_ind = data.FindUser(tokens.adder_id);
-                                                if (adder_ind != -1)
-                                                    api.AddFriend(data.users[ind].vkid, data.users[adder_ind].user_token);
-=======
-                                                throw new Exception("User not found in database");
->>>>>>> 3da492f89e6beca16c1b2ff16904da2da42d7912
+                                                api.AddFriend(data.users[ind].vkid, data.users[myind].user_token);
                                             }
                                             else
                                             {
-                                                bool inviting = false;
-                                                switch (cost)
-                                                {
-                                                    case 60:
-                                                        new_tarif = 5000;
-                                                        break;
-                                                    case 100:
-                                                        new_tarif = 12000;
-                                                        break;
-                                                    case 150:
-                                                        new_tarif = 20000;
-                                                        break;
-                                                    case 200:
-                                                        new_tarif = 30000;
-                                                        break;
-                                                    case 300:
-                                                        new_tarif = 50000;
-                                                        break;
-                                                    case 50:
-                                                        inviting = true;
-                                                        break;
-                                                }
-                                                if (new_tarif != 0)
-                                                {
-                                                    data.users[ind].sender.tarif -= data.users[ind].sender.sended_messages;
-                                                    data.users[ind].sender.tarif += new_tarif;
-                                                    data.users[ind].sender.sended_messages = 0;
-                                                    api.Send_msg(data.users[ind].vkid, $"Оплата успешно проведена.\nВаш новый тариф - {data.users[ind].sender.tarif}");
-                                                }
-                                                else if (inviting)
-                                                {
-                                                    data.users[ind].adder = new AdderInfo();
-                                                    data.users[ind].adder.is_on = true;
-                                                    api.Send_msg(data.users[ind].vkid, $"Оплата добавления в беседы произведена успешно");
-                                                    api.AddFriend(data.users[ind].vkid, data.users[myind].user_token);
-                                                }
-                                                else
-                                                {
-                                                    throw new Exception("Wrong cost");
-                                                }
-                                                if (data.users[ind].got_ref)
-                                                {
-                                                    int ref_ind = data.FindUser(data.users[ind].ref_id); //Потенциальная проблема при ошибке базы
-                                                    data.users[ref_ind].adminInfo.balance += (int)(cost / 2);
-                                                    api.Send_msg(data.users[ind].ref_id, $"Ваш реферал @id{data.users[ind].vkid} оплатил {cost}₽, на вашем балансе теперь {data.users[ref_ind].adminInfo.balance}₽");
-                                                }
+                                                throw new Exception("Wrong cost");
                                             }
-                                            api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost}");
+                                            if (data.users[ind].got_ref)
+                                            {
+                                                int ref_ind = data.FindUser(data.users[ind].ref_id); //Потенциальная проблема при ошибке базы
+                                                data.users[ref_ind].adminInfo.balance += (int)(cost / 2);
+                                                api.Send_msg(data.users[ind].ref_id, $"Ваш реферал @id{data.users[ind].vkid} оплатил {cost}₽, на вашем балансе теперь {data.users[ref_ind].adminInfo.balance}₽");
+                                            }
                                         }
-                                        catch (Exception payment_ex)
-                                        {
-                                            api.Log("Payment error: " + payment_ex.Message);
-                                            if (ind != -1)
-                                                api.Send_msg(data.users[ind].vkid, "Возникла проблема при оплате, напишите @ne_ivan_tochno и укажите свой номер телефона");
-                                        }
+                                        api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost}");
+                                    }
+                                    catch (Exception payment_ex)
+                                    {
+                                        api.Log("Payment error: " + payment_ex.Message);
+                                        if (ind != -1)
+                                            api.Send_msg(data.users[ind].vkid, "Возникла проблема при оплате, напишите @ne_ivan_tochno и укажите свой номер телефона");
                                     }
                                 }
                             }
-                            data.last_txnId = UInt64.Parse(data_list[0]["txnId"].ToString());
-                            File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
-                            {
-                                users_ids = data.users_ids,
-                                last_txnId = data.last_txnId
-                            }));
                         }
-                        catch (Exception qiwi_ex)
+                        data.last_txnId = UInt64.Parse(data_list[0]["txnId"].ToString());
+                        File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                         {
-                            Console.WriteLine("Qiwi error: " + qiwi_ex.ToString());
-                        }
+                            users_ids = data.users_ids,
+                            last_txnId = data.last_txnId
+                        }));
                     }
-<<<<<<< HEAD
+                    catch (Exception qiwi_ex)
+                    {
+                        Console.WriteLine("Qiwi error: " + qiwi_ex.ToString());
+                    }
                 }
-                int adder_ind = data.FindUser(tokens.adder_id);
-                if (adder_ind != -1)
-                {
-=======
->>>>>>> 3da492f89e6beca16c1b2ff16904da2da42d7912
                     //adder
                     for (int ind = 0; ind < data.users.Count; ind++)
                     {
@@ -922,17 +893,17 @@ namespace ChatSender2
                                 {
                                     try
                                     {
-                                        api.InviteUser(data.users[adder_ind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[adder_ind].user_token);
-                                        Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[adder_ind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
+                                        api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id, data.users[ind].vkid, data.users[myind].user_token);
+                                        Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].peer_id + " user " + data.users[ind].vkid);
                                     }
                                     catch { Console.WriteLine("Error adding user " + data.users[ind].vkid); }
                                     data.users[ind].adder.last_time = DateTime.Now;
                                     data.users[ind].adder.last_cind++;
-                                    if ((data.users[ind].adder.last_cind + 1) % 20 == 0)
+                                    if (data.users[ind].adder.last_cind % 20 == 0)
                                     {
                                         data.users[ind].adder.wait = true;
                                     }
-                                    if (data.users[ind].adder.last_cind >= data.users[adder_ind].sender.sender_chats.Count)
+                                    if (data.users[ind].adder.last_cind >= data.users[myind].sender.sender_chats.Count)
                                     {
                                         data.users[ind].adder.is_on = false;
                                         data.users[ind].adder.last_cind = 0;
@@ -946,14 +917,13 @@ namespace ChatSender2
                                 }
                             }
                         }
-
-                    }
-                    if (counter_main % 30 == 0)
-                    {
-                        List<string> friends = api.RequestFriends(data.users[adder_ind].user_token);
-                        foreach (string id in friends)
+                        if (counter_main % 10 == 0)
                         {
-                            api.AddFriend(id, data.users[adder_ind].user_token);
+                            List<string> friends = api.RequestFriends(data.users[myind].user_token);
+                            foreach (string id in friends)
+                            {
+                                api.AddFriend(id, data.users[myind].user_token);
+                            }
                         }
                     }
                 }
