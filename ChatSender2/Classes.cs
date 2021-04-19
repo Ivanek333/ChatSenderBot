@@ -12,9 +12,9 @@ namespace ChatSender2
 		public string ref_id;
 		//public string ref_code;
 		public bool authed, got_token, got_phone, is_admin, got_ref;
-		public SenderInfo sender;
 		public AdderInfo adder;
 		public AdminInfo adminInfo;
+		public SenderInfo sender;
 
 		public User()
 		{
@@ -36,31 +36,35 @@ namespace ChatSender2
 	public class SenderInfo
 	{
 		public bool is_on;
-		public int minutes_between_send;
 		public DateTime last_time;
-		public DateTime last_get_time;
 		public int last_cind;
-		public string message;
 		public int sended_messages;
 		public int tarif;
-		public List<VK.Chat> sender_chats;
-		public List<VK.Chat> all_chats;
-		public List<int> deleted_chats;
 		public bool changed;
+		public List<int> sender_chats;
+		public List<int> deleted_chats;
+		public List<VK.Chat> all_chats;
 		public SenderInfo()
 		{
 			is_on = false;
-			minutes_between_send = 60;
 			last_time = DateTime.Now;
-			last_get_time = DateTime.Now;
 			last_cind = 0;
-			message = "your_message";
 			sended_messages = 0;
 			tarif = 50;
-			sender_chats = new List<VK.Chat>();
+			sender_chats = new List<int>();
 			all_chats = new List<VK.Chat>();
 			deleted_chats = new List<int>();
 			changed = false;
+		}
+	}
+	public class Template
+	{
+		public string message;
+		public int minutes_between_send;
+		public Template()
+		{
+			message = "пустой";
+			minutes_between_send = 0;
 		}
 	}
 	public class AdderInfo
