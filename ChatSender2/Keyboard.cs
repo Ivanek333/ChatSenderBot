@@ -76,9 +76,9 @@ namespace ChatSender2
 									case "text":
 										keyboard.buttons[i].Add(new VK.Button(new VK.Action { type = "text", label = message.buttons[i][l].text }, color));
 										break;
-									case "open_link":
-										keyboard.buttons[i].Add(new VK.Button(new VK.Action { type = "open_link", label = message.buttons[i][l].text, link = message.buttons[i][l].link }, color));
-										break;
+									//case "open_link":
+									//	keyboard.buttons[i].Add(new VK.Button(new VK.Action { type = "open_link", label = message.buttons[i][l].text, link = message.buttons[i][l].link }, color));
+									//	break;
 								}
 							}
 						}
@@ -132,7 +132,7 @@ namespace ChatSender2
 		public char c;
 		public string type;
 		public string text;
-		public string link;
+		//public string link;
 	}
 	public class ReplyMessage
 	{
@@ -147,7 +147,7 @@ namespace ChatSender2
 		{
 			public string type;
 			public string label;
-			public string link;
+			//public string link;
 		}
 		public class Button
 		{

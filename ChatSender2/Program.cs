@@ -42,6 +42,9 @@ namespace ChatSender2
                 for (int i = 0; i < data.users_ids.Count; i++)
                 {
                     User temp = new User();
+                    temp.got_phone = true;
+                    temp.got_token = true;
+                    temp.authed = true;
                     JsonConvert.PopulateObject(File.ReadAllText($"{path}Users_data/{data.users_ids[i]}.json"), temp);
                     data.users.Add(temp);
                 }
@@ -53,9 +56,9 @@ namespace ChatSender2
             }
             try
             {
-                foreach (var item in data.users)
+                for (int i = 0; i < data.users_ids.Count; i++)
                 {
-                    //File.WriteAllText($"{path}Users_data/{item.vkid}.json", JsonConvert.SerializeObject(item));
+                    //File.WriteAllText($"{path}Users_data/{data.users_ids[i]}.json", JsonConvert.SerializeObject(data.users[i]));
                 }
             }
             catch (Exception e)
@@ -194,10 +197,10 @@ namespace ChatSender2
                                         {
                                             data.users[ind].got_ref = true;
                                             data.users[ind].ref_id = data.users[ref_ind].vkid;
-                                            data.users[ind].sender.tarif += 100;
+                                            data.users[ind].sender.tarif += 300;
                                             data.users[ref_ind].refs.Add(from_id);
                                             api.Send_msg(data.users[ref_ind].vkid, $"У вас появился новый реферал - @id{from_id}");
-                                            api.Send_msg(peer_id, $"Вы стали рефералом @id{data.users[ref_ind].vkid} и получили бонус: +100 сообщений");
+                                            api.Send_msg(peer_id, $"Вы стали рефералом @id{data.users[ref_ind].vkid} и получили бонус: +300 сообщений");
                                         }
                                     }
                                 }
@@ -216,6 +219,7 @@ namespace ChatSender2
                                 to_mid = api.FindMidByText(mdata.messages[cur_mind], msg);
                                 to_mind = mdata.FindMind(to_mid);
                             }
+                            //Console.WriteLine(cur_mid + " " + cur_mind + " " + to_mid + " " + to_mind);
                             //if admin
                             if (to_mid == 7 && data.users[ind].is_admin)
                             {
