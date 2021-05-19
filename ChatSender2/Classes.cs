@@ -12,6 +12,7 @@ namespace ChatSender2
 		public string ref_id;
 		//public string ref_code;
 		public bool authed, got_token, got_phone, is_admin, got_ref;
+		public List<string> refs;
 		public AdderInfo adder;
 		public AdminInfo adminInfo;
 		public SenderInfo sender;
@@ -28,13 +29,25 @@ namespace ChatSender2
 			got_phone = false;
 			is_admin = false;
 			got_ref = false;
+			refs = new List<string>();
 			sender = new SenderInfo();
 			adder = new AdderInfo();
 			adminInfo = new AdminInfo();
 		}
+		public string refs_ToString()
+		{
+			string ret = "";
+			for (int i = 0; i < refs.Count; i++)
+			{
+				ret += $"{i + 1}. @id{refs[i]}\n";
+			}
+			return ret;
+		}
 	}
 	public class SenderInfo
 	{
+		public string message;
+		public int minutes_between_send;
 		public bool is_on;
 		public DateTime last_time;
 		public int last_cind;
@@ -43,21 +56,41 @@ namespace ChatSender2
 		public bool changed;
 		public List<int> sender_chats;
 		public List<int> deleted_chats;
-		public List<VK.Chat> all_chats;
+		public List<Chat> all_chats;
 		public SenderInfo()
 		{
+			message = "введите сообщение";
+			minutes_between_send = 200;
 			is_on = false;
 			last_time = DateTime.Now;
 			last_cind = 0;
 			sended_messages = 0;
 			tarif = 50;
 			sender_chats = new List<int>();
-			all_chats = new List<VK.Chat>();
+			all_chats = new List<Chat>();
 			deleted_chats = new List<int>();
 			changed = false;
 		}
 	}
-	public class Template
+	public class Chat : IComparable
+	{
+		public int cid;
+		public string name;
+		public byte mark;
+		public override string ToString()
+		{
+			return $"[{this.cid.ToString()}] {this.name}";
+		}
+		public int CompareTo(object obj)
+		{
+			if (obj == null) return 1;
+			Chat n = obj as Chat;
+			if (n != null)
+				return this.cid.CompareTo(n.cid);
+			else throw new ArgumentException("Object is not a Chat");
+		}
+	}
+	/*public class Template
 	{
 		public string message;
 		public int minutes_between_send;
@@ -66,7 +99,7 @@ namespace ChatSender2
 			message = "пустой";
 			minutes_between_send = 0;
 		}
-	}
+	}*/
 	public class AdderInfo
 	{
 		public bool is_on, wait;
@@ -82,25 +115,14 @@ namespace ChatSender2
 	}
 	public class AdminInfo
 	{
-		public List<string> refs;
 		public int balance;
 		public string temp_user;
 		public int temp_user_ind;
 		public AdminInfo()
 		{
-			refs = new List<string>();
 			balance = 0;
 			temp_user = "";
 			temp_user_ind = 0;
-		}
-		public string refs_ToString()
-		{
-			string ret = "";
-			for (int i = 0; i < refs.Count; i++)
-			{
-				ret += $"{i + 1}. @id{refs[i]}\n";
-			}
-			return ret;
 		}
 	}
 	public class MessageData
@@ -138,7 +160,7 @@ namespace ChatSender2
 	public class Database
 	{
 		public UInt64 last_txnId;
-		public Dictionary<int, string> users_ids;
+		public List<string> users_ids;
 		public List<User> users;
 
 		public int FindUser(string vkid)
@@ -150,7 +172,7 @@ namespace ChatSender2
 		public Database()
 		{
 			users = new List<User>();
-			users_ids = new Dictionary<int, string>();
+			users_ids = new List<string>();
 			last_txnId = 0;
 		}
 	}

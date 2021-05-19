@@ -10,27 +10,6 @@ using System.IO;
 
 namespace ChatSender2
 {
-    namespace VK
-    {
-        public class Chat : IComparable
-        {
-            public string peer_id;
-            public string name;
-            public byte mark;
-            public override string ToString()
-            {
-                return $"[{this.peer_id}] {this.name}";
-            }
-            public int CompareTo(object obj)
-            {
-                if (obj == null) return 1;
-                VK.Chat n = obj as VK.Chat;
-                if (n != null)
-                    return int.Parse(this.peer_id).CompareTo(int.Parse(n.peer_id));
-                else throw new ArgumentException("Object is not a Chat");
-            }
-        }
-    }
     public partial class MyApi
     {
         WebClient webclient = new WebClient() { Encoding = Encoding.UTF8 };
@@ -162,9 +141,9 @@ namespace ChatSender2
             }
             return ret;
         }
-        public List<VK.Chat> GetChats(string user_token)
+        public List<Chat> GetChats(string user_token)
         {
-            List<VK.Chat> chats = new List<VK.Chat>();
+            List<Chat> chats = new List<Chat>();
             try
             {
                 string j = "";
@@ -181,9 +160,9 @@ namespace ChatSender2
                     {
                         if (item["conversation"]["peer"]["type"].ToString() == "chat")
                         {
-                            chats.Add(new VK.Chat
+                            chats.Add(new Chat
                             {
-                                peer_id = item["conversation"]["peer"]["local_id"].ToString(),
+                                cid = int.Parse(item["conversation"]["peer"]["local_id"].ToString()),
                                 name = item["conversation"]["chat_settings"]["title"].ToString(),
                                 mark = 0
                             });
@@ -200,7 +179,7 @@ namespace ChatSender2
             chats.Sort();
             return chats;
         }
-        public string ChatList2String(List<VK.Chat> chats)
+        public string ChatList2String(List<Chat> chats)
         {
             string ret = "";
             for (int i = 0; i < chats.Count; i++)
