@@ -42,9 +42,6 @@ namespace ChatSender2
                 for (int i = 0; i < data.users_ids.Count; i++)
                 {
                     User temp = new User();
-                    temp.got_phone = true;
-                    temp.got_token = true;
-                    temp.authed = true;
                     JsonConvert.PopulateObject(File.ReadAllText($"{path}Users_data/{data.users_ids[i]}.json"), temp);
                     data.users.Add(temp);
                 }
@@ -674,7 +671,14 @@ namespace ChatSender2
                          //Thread.Sleep(200);
                     }//foreach
                 }//if has updates
-                //sender
+                 //sender
+
+                /*string t = "";
+                for (int ind = 0; ind < data.users.Count; ind++)
+                {
+                    t += (ind + 1).ToString() + ". " + data.users[ind].vkid  + "\n";
+                }
+                Console.WriteLine(t);*/
                 for (int ind = 0; ind < data.users.Count; ind++)
                 {
                     if (data.users[ind].sender.is_on)
@@ -716,7 +720,7 @@ namespace ChatSender2
                             {
                                 data.users[ind].sender.changed = true;
                                 data.users[ind].sender.deleted_chats.Add(data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]);
-                                data.users[ind].sender.sender_chats.RemoveAt(data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]);
+                                data.users[ind].sender.sender_chats.RemoveAt(data.users[ind].sender.last_cind);
                                 string error_msg = JObject.Parse(response)["error"]["error_msg"].ToString();
                                 api.Send_msg(data.users[ind].vkid, "Возникла ошибка с беседой " +
                                     data.users[ind].sender.all_chats[data.users[ind].sender.deleted_chats[data.users[ind].sender.deleted_chats.Count - 1]].cid.ToString() +
