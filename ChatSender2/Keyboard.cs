@@ -23,65 +23,94 @@ namespace ChatSender2
 			}
 			return -1;
 		}
-		public string Send_msg_keyboard(string peer_id, ReplyMessage keyboard, string message = null)
+		public string Send_msg_keyboard(string peer_id, ReplyMessage message, string text = null)
 		{
-			string json = "", url = "-1";
+			string j = "";
 			try
 			{
-				if (message == null) message = keyboard.text;
-				int symbols = message.Length;
+				if (text == null)
+					text = message.text;
+				int symbols = text.Length;
 				while (symbols > 0)
 				{
-					string tmessage = message.Substring(0, symbols > 1000 ? 1000 : symbols);
-					message = message.Remove(0, symbols > 1000 ? 1000 : symbols);
-					symbols = message.Length;
-					url = $"https://api.vk.com/method/messages.send?v=5.126&access_token={token}&peer_id={peer_id}&message={tmessage}&group_id={group_id}&random_id=0";
+					string tmessage = text.Substring(0, symbols > 512 ? 512 : symbols);
+					text = text.Remove(0, symbols > 512 ? 512 : symbols);
+					symbols = text.Length;
+					Dictionary<string, string> request = new Dictionary<string, string>
+					{
+						{ "random_id", "0" },
+						{ "peer_id", peer_id },
+						{ "message", tmessage }
+					};
 					if (symbols <= 512)
 					{
-						VK.Keyboard vkkeyboard = new VK.Keyboard
+						VK.Keyboard keyboard = new VK.Keyboard
 						{
+							inline = message.inline,
 							one_time = false,
 							buttons = new List<List<VK.Button>>()
 						};
-						for (int i = 0; i < keyboard.buttons.Count(); i++)
+						for (int i = 0; i < message.buttons.Count(); i++)
 						{
-							vkkeyboard.buttons.Add(new List<VK.Button>());
-							for (int j = 0; j < keyboard.buttons[i].Count(); j++)
+							keyboard.buttons.Add(new List<VK.Button>());
+							for (int l = 0; l < message.buttons[i].Count(); l++)
 							{
 								string color = "";
-								switch (keyboard.buttons[i][j].c)
+								switch (message.buttons[i][l].c)
 								{
-									case 1:
-										color = "secondary";
-										break;
-									case 2:
-										color = "primary";
-										break;
-									case 3:
+									case 'r':
 										color = "negative";
 										break;
-									case 4:
+									case 'g':
 										color = "positive";
 										break;
+									case 'b':
+										color = "primary";
+										break;
+									case 'w':
+										color = "secondary";
+										break;
 								}
-								vkkeyboard.buttons[i].Add(new VK.Button(new VK.Action("text", keyboard.buttons[i][j].text), color));
+								switch (message.buttons[i][l].type)
+								{
+									case "text":
+										keyboard.buttons[i].Add(new VK.Button(new VK.Action { type = "text", label = message.buttons[i][l].text }, color));
+										break;
+									case "open_link":
+										keyboard.buttons[i].Add(new VK.Button(new VK.Action { type = "open_link", label = message.buttons[i][l].text, link = message.buttons[i][l].link }, color));
+										break;
+								}
 							}
 						}
-						string keys_json = JsonConvert.SerializeObject(vkkeyboard);
-						url = url + "&keyboard=" + keys_json;
+						request.Add("keyboard", JsonConvert.SerializeObject(keyboard));
 					}
-					//Console.WriteLine(url);
 					WebClient client = new WebClient { Encoding = Encoding.UTF8 };
-					json = client.DownloadString(url);
+					j = Request("messages.send", request);
 				}
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("send download error: " + e.Message + "\n" + json + "\n");
-				Console.WriteLine(url);
+				Log("Error Messages_Send: " + e.ToString());
 			}
-			if (json.Contains("error")) Console.WriteLine("Send error: " + json);
-			return json;
+			return j;
+		}
+		public string Request(string method, Dictionary<string, string> param)
+		{
+			string j = "";
+			try
+			{
+				string p = "";
+				foreach (var pair in param)
+				{
+					p += "&" + pair.Key + "=" + pair.Value;
+				}
+				j = webclient.DownloadString($"https://api.vk.com/method/{method}?v=5.130&access_token={token}&group_id={group_id}{p}");
+			}
+			catch (Exception e)
+			{
+				Log($"Request error - {method}: " + e.Message);
+			}
+			return j;
 		}
 		public string Send_split_msg_keyboard(string peer_id, ReplyMessage keyboard, char splitter, string message = null)
 		{
@@ -99,19 +128,16 @@ namespace ChatSender2
 	}
 	public class Button
 	{
-		public string text;
 		public int to_mid;
-		public int c;
-		public Button(string _text, int _to_mid, int _c = 1)
-		{
-			text = _text;
-			to_mid = _to_mid;
-			c = _c;
-		}
+		public char c;
+		public string type;
+		public string text;
+		public string link;
 	}
 	public class ReplyMessage
 	{
 		public int mid;
+		public bool inline;
 		public string text;
 		public List<List<Button>> buttons;
 	}
@@ -121,11 +147,7 @@ namespace ChatSender2
 		{
 			public string type;
 			public string label;
-			public Action(string _type, string _label)
-			{
-				type = _type;
-				label = _label;
-			}
+			public string link;
 		}
 		public class Button
 		{
@@ -139,7 +161,7 @@ namespace ChatSender2
 		}
 		public class Keyboard
 		{
-			public bool one_time;
+			public bool one_time, inline;
 			public List<List<Button>> buttons;
 		}
 	}
