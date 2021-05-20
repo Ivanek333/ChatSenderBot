@@ -144,9 +144,9 @@ namespace ChatSender2
         public List<Chat> GetChats(string user_token)
         {
             List<Chat> chats = new List<Chat>();
+            string j = "";
             try
             {
-                string j = "";
                 WebClient client = new WebClient { Encoding = Encoding.UTF8 };
                 j = client.DownloadString(string.Format("https://api.vk.com/method/messages.getConversations?v=5.126&access_token={0}&count=1&filter=all", user_token));
                 List<JToken> item_list = new List<JToken>();
@@ -174,7 +174,7 @@ namespace ChatSender2
             }
             catch (Exception e)
             {
-                Log("(GetChats) Error: " + e.Message);
+                Log("(GetChats) Error: " + e.Message + "\n" + j);
             }
             chats.Sort();
             return chats;
