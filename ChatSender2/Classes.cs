@@ -11,7 +11,7 @@ namespace ChatSender2
 		public string phone;
 		public string ref_id;
 		//public string ref_code;
-		public bool authed, got_token, got_phone, is_admin, got_ref;
+		public bool got_token, got_phone, is_admin, got_ref;
 		public List<string> refs;
 		public AdderInfo adder;
 		public AdminInfo adminInfo;
@@ -24,7 +24,6 @@ namespace ChatSender2
 			user_token = "";
 			phone = "";
 			ref_id = "";
-			authed = false;
 			got_token = false;
 			got_phone = false;
 			is_admin = false;
