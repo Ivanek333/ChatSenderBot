@@ -694,7 +694,11 @@ namespace ChatSender2
 
         public Worker(MyApi _api, Thread _main_thread, Database _data, Tokens _tokens, string _path)
         {
-            api = _api;
+            api = new MyApi { 
+                path = _api.path,
+                group_id = _api.group_id,
+                token = _api.token
+            };
             main_thread = _main_thread;
             data = _data;
             tokens = _tokens;
