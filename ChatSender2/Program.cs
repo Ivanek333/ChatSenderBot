@@ -172,9 +172,9 @@ namespace ChatSender2
                             if (ind == -1)
                             {
                                 new_user = true;
-                                data.users.Add(new User());
-                                ind = data.users.Count - 1;
                                 data.users_ids.Add(from_id);
+                                ind = data.users.Count;
+                                data.users.Add(new User());
                                 data.users[ind].vkid = from_id;
                                 File.WriteAllText($"{path}Database.json", JsonConvert.SerializeObject(new Database
                                 {
@@ -213,6 +213,7 @@ namespace ChatSender2
                                 int to_mind = cur_mind;
                                 Dictionary<string, string> dictionary = new Dictionary<string, string>
                                 {
+                                    { "+", "%2B" },
                                     { "[user_id]", from_id },
                                     { "[user_token]", data.users[ind].user_token }
                                 };
