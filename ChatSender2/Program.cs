@@ -795,7 +795,8 @@ namespace ChatSender2
                                     if (UInt64.Parse(data_list[i]["txnId"].ToString()) > data.last_txnId)
                                     {
                                         string credits = data_list[i]["account"].ToString();
-                                        int cost = (int)MathF.Round(float.Parse(data_list[i]["sum"]["amount"].ToString()) / 5f) * 5;
+                                        float cost_f = float.Parse(data_list[i]["sum"]["amount"].ToString());
+                                        int cost = (int)MathF.Round(cost_f / 5f) * 5;
                                         int ind = -1;
                                         int new_tarif = 0;
                                         try
@@ -816,7 +817,7 @@ namespace ChatSender2
                                                 }
                                                 else
                                                 {
-                                                    api.Send_msg("2000000001", $"Новая покупка:\n+{cost}р - @id{data.users[ind].vkid}");
+                                                    api.Send_msg("2000000001", $"Новая покупка:\n+{cost_f}р - @id{data.users[ind].vkid}");
                                                     bool inviting = false;
                                                     switch (cost)
                                                     {
@@ -872,7 +873,7 @@ namespace ChatSender2
                                                         }
                                                     }
                                                 }
-                                                api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost}");
+                                                api.Log($"Successful payment: {data.users[ind].vkid} buyed tarif by {cost_f}");
                                             }
                                         }
                                         catch (Exception payment_ex)
