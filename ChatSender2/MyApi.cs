@@ -243,6 +243,7 @@ namespace ChatSender2
             {
                 Log("(InviteUser) Error: " + e.Message);
             }
+            Log(ret);
             return ret;
         }
         public string AddFriend(string user_id, string token)

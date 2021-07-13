@@ -244,18 +244,29 @@ namespace ChatSender2
                                 }
                                 if (to_mid == 14)
                                 {
-                                    api.Send_msg(peer_id, "Прогружаем список всех ваших бесед...");
-                                    data.users[ind].sender.all_chats = api.GetChats(data.users[ind].user_token);
-                                    data.users[ind].sender.changed = false;
-                                    for (int i = 0; i < data.users[ind].sender.sender_chats.Count; i++)
+                                    try
                                     {
-                                        data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[i]].mark = 1;
+                                        api.Send_msg(peer_id, "Прогружаем список всех ваших бесед...");
+                                        data.users[ind].sender.all_chats = api.GetChats(data.users[ind].user_token);
+                                        data.users[ind].sender.changed = false;
+                                        //Console.WriteLine(data.users[ind].sender.all_chats.Count);
+                                        for (int i = 0; i < data.users[ind].sender.sender_chats.Count; i++)
+                                        {
+                                            //Console.WriteLine(data.users[ind].sender.sender_chats[i]);
+                                            //Console.WriteLine(data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[i]].cid);
+                                            data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[i]].mark = 1;
+                                        }
+                                        /*for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
+                                        {
+                                            data.users[ind].sender.all_chats[data.users[ind].sender.deleted_chats[i]].mark = 2;
+                                        }*/
+                                        dictionary.Add("[sender_chats_all]", api.ChatList2String(data.users[ind].sender.all_chats));
                                     }
-                                    for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
+                                    catch (Exception e)
                                     {
-                                        data.users[ind].sender.all_chats[data.users[ind].sender.deleted_chats[i]].mark = 2;
+                                        api.Log("беды с беседами");
+                                        api.Send_msg(from_id, "Вы пытаетесь сломать бота >:(");
                                     }
-                                    dictionary.Add("[sender_chats_all]", api.ChatList2String(data.users[ind].sender.all_chats));
                                 }
                                 if (to_mid == 20 || to_mid == 28)
                                 {
@@ -360,14 +371,14 @@ namespace ChatSender2
                                                         break;
                                                     }
                                                 }
-                                                for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
+                                                /*for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
                                                 {
                                                     if (data.users[ind].sender.all_chats[data.users[ind].sender.deleted_chats[i]].cid == cid)
                                                     {
                                                         data.users[ind].sender.deleted_chats.RemoveAt(i);
                                                         break;
                                                     }
-                                                }
+                                                }*/
                                                 if (ind_send == -1)
                                                 {
                                                     data.users[ind].sender.all_chats[ind_all].mark = 1;
@@ -418,14 +429,14 @@ namespace ChatSender2
                                                             break;
                                                         }
                                                     }
-                                                    for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
+                                                    /*for (int i = 0; i < data.users[ind].sender.deleted_chats.Count; i++)
                                                     {
                                                         if (data.users[ind].sender.all_chats[data.users[ind].sender.deleted_chats[i]].cid == cid)
                                                         {
                                                             data.users[ind].sender.deleted_chats.RemoveAt(i);
                                                             break;
                                                         }
-                                                    }
+                                                    }*/
                                                     if (ind_send == -1)
                                                     {
                                                         data.users[ind].sender.all_chats[ind_all].mark = 1;
@@ -731,48 +742,65 @@ namespace ChatSender2
                             lock (data.users[ind])
                             {
                                 //Console.WriteLine("here");
-                                if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
+                                try
                                 {
-                                    data.users[ind].sender.last_cind = 0;
-                                    continue;
-                                }
-                                string response = api.Send_user_msg(
-                                    data.users[ind].user_token,
-                                    data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]].cid.ToString(),
-                                    data.users[ind].sender.message
-                                    );
-                                Console.WriteLine(DateTime.Now.ToLongTimeString() + " - sent in " + data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]].cid.ToString() + " from " + data.users[ind].vkid);
-                                if (response.Contains("error"))
-                                {
-                                    data.users[ind].sender.changed = true;
-                                    data.users[ind].sender.deleted_chats.Add(data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]);
-                                    data.users[ind].sender.sender_chats.RemoveAt(data.users[ind].sender.last_cind);
-                                    string error_msg = JObject.Parse(response)["error"]["error_msg"].ToString();
-                                    api.Send_msg(data.users[ind].vkid, "Возникла ошибка с беседой " +
-                                        data.users[ind].sender.all_chats[data.users[ind].sender.deleted_chats[data.users[ind].sender.deleted_chats.Count - 1]].cid.ToString() +
-                                        ":\n" + error_msg + "\nБеседа удалена из списка рассылки");
-                                }
-                                else
-                                {
-                                    //api.Send_msg(data.users[ind].vkid, "Sent in chat " + data.users[ind].sender_chats[data.users[ind].sender.last_cind].peer_id);
-                                    data.users[ind].sender.sended_messages++;
-                                }
-                                if (data.users[ind].sender.sended_messages >= data.users[ind].sender.tarif)
-                                {
-                                    data.users[ind].sender.is_on = false;
-                                    data.users[ind].sender.sended_messages = 0;
-                                    api.Send_msg(data.users[ind].vkid,
-                                        $"Внимание!\nВаш тариф ({data.users[ind].sender.tarif} сообщений) закончился, рассылка была остановлена"
+
+
+                                    if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
+                                    {
+                                        data.users[ind].sender.last_cind = 0;
+                                        continue;
+                                    }
+                                    string response = api.Send_user_msg(
+                                        data.users[ind].user_token,
+                                        data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]].cid.ToString(),
+                                        data.users[ind].sender.message
                                         );
-                                    data.users[ind].sender.tarif = 0;
+                                    Console.WriteLine(DateTime.Now.ToLongTimeString() + " - sent in " + data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]].cid.ToString() + " from " + data.users[ind].vkid);
+                                    if (response.Contains("error"))
+                                    {
+                                        data.users[ind].sender.changed = true;
+                                        //data.users[ind].sender.deleted_chats.Add(data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]);
+                                        string error_msg = JObject.Parse(response)["error"]["error_msg"].ToString();
+                                        api.Send_msg(data.users[ind].vkid, "Возникла ошибка с беседой " +
+                                            data.users[ind].sender.all_chats[data.users[ind].sender.sender_chats[data.users[ind].sender.last_cind]].cid.ToString() +
+                                            ":\n" + error_msg + "\nБеседа удалена из списка рассылки");
+                                        data.users[ind].sender.sender_chats.RemoveAt(data.users[ind].sender.last_cind);
+                                    }
+                                    else
+                                    {
+                                        //api.Send_msg(data.users[ind].vkid, "Sent in chat " + data.users[ind].sender_chats[data.users[ind].sender.last_cind].peer_id);
+                                        data.users[ind].sender.sended_messages++;
+                                    }
+                                    if (data.users[ind].sender.sended_messages >= data.users[ind].sender.tarif)
+                                    {
+                                        data.users[ind].sender.is_on = false;
+                                        data.users[ind].sender.sended_messages = 0;
+                                        api.Send_msg(data.users[ind].vkid,
+                                            $"Внимание!\nВаш тариф ({data.users[ind].sender.tarif} сообщений) закончился, рассылка была остановлена"
+                                            );
+                                        data.users[ind].sender.tarif = 0;
+                                    }
+                                    data.users[ind].sender.last_cind++;
+                                    if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
+                                        data.users[ind].sender.last_cind = 0;
+                                    data.users[ind].sender.last_time = DateTime.Now;
+                                    File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
+                                    //Console.WriteLine($"{DateTime.Now.ToLongTimeString()}:{DateTime.Now.Second.ToString()}:{DateTime.Now.Millisecond.ToString()} - time setted: {dt.ToLongTimeString()}:{dt.Second.ToString()}:{dt.Millisecond.ToString()}");
                                 }
-                                data.users[ind].sender.last_cind++;
-                                if (data.users[ind].sender.last_cind >= data.users[ind].sender.sender_chats.Count)
+                                catch (Exception e)
+                                {
+                                    api.Log("Send error: " + data.users[ind].vkid + " >> " + e.ToString());
+                                    api.Send_msg(tokens.my_id, "Опять бота поломали");
+                                    api.Send_msg(data.users[ind].vkid, "Вы сломали бота (зачем, а главное, как), беседы для рассылки убраны, укажите их пожалуйста заново");
+                                    data.users[ind].sender.all_chats = new List<Chat>();
+                                    data.users[ind].sender.sender_chats = new List<int>();
+                                    data.users[ind].sender.deleted_chats = new List<int>();
                                     data.users[ind].sender.last_cind = 0;
-                                data.users[ind].sender.last_time = DateTime.Now;
-                                File.WriteAllText($"{path}Users_data/{data.users_ids[ind]}.json", JsonConvert.SerializeObject(data.users[ind]));
-                                //Console.WriteLine($"{DateTime.Now.ToLongTimeString()}:{DateTime.Now.Second.ToString()}:{DateTime.Now.Millisecond.ToString()} - time setted: {dt.ToLongTimeString()}:{dt.Second.ToString()}:{dt.Millisecond.ToString()}");
+                                    data.users[ind].sender.is_on = false;
+                                }
                             }
+                            
                         }
                     }
                 }//sender
@@ -920,13 +948,13 @@ namespace ChatSender2
                                     {
                                         try
                                         {
-                                            api.InviteUser(data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].ToString(), data.users[ind].vkid, data.users[myind].user_token);
-                                            Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind].ToString() + " user " + data.users[ind].vkid);
+                                            api.InviteUser(data.users[myind].sender.all_chats[data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind]].cid.ToString(), data.users[ind].vkid, data.users[myind].user_token);
+                                            Console.WriteLine(DateTime.Now.ToLongTimeString() + " - added in " + data.users[myind].sender.all_chats[data.users[myind].sender.sender_chats[data.users[ind].adder.last_cind]].cid.ToString() + " user " + data.users[ind].vkid);
                                         }
                                         catch { Console.WriteLine("Error adding user " + data.users[ind].vkid); }
                                         data.users[ind].adder.last_time = DateTime.Now;
                                         data.users[ind].adder.last_cind++;
-                                        if (data.users[ind].adder.last_cind % 20 == 0)
+                                        if (data.users[ind].adder.last_cind % 20 == 19)
                                         {
                                             data.users[ind].adder.wait = true;
                                         }
